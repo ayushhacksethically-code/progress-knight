@@ -8,6 +8,11 @@ var gameData = {
     paused: false,
     timeWarpingEnabled: true,
 
+    prestigePoints: 0,
+    merchantsBlessing: false,
+    autoJob: null,
+    autoSkill: null,
+
     rebirthOneCount: 0,
     rebirthTwoCount: 0,
 
@@ -18,16 +23,15 @@ var gameData = {
 }
 
 var tempData = {}
-
 var skillWithLowestMaxXp = null
+
+var gameSpeedMultiplier = 5
 
 const autoPromoteElement = document.getElementById("autoPromote")
 const autoLearnElement = document.getElementById("autoLearn")
 
 const updateSpeed = 20
-
 const baseLifespan = 365 * 70
-
 const baseGameSpeed = 4
 
 const permanentUnlocks = ["Scheduling", "Shop", "Automation", "Quick task display"]
@@ -49,12 +53,21 @@ const jobBaseData = {
     "Holy knight": {name: "Holy knight", maxXp: 40000000, income: 15000},
     "Legendary knight": {name: "Legendary knight", maxXp: 150000000, income: 50000},
 
+    // New Class: Mage
+    "Apprentice": {name: "Apprentice", maxXp: 350, income: 60},
+    "Wizard": {name: "Wizard", maxXp: 3000, income: 450},
+    "Archmage": {name: "Archmage", maxXp: 35000, income: 4000},
+
     "Student": {name: "Student", maxXp: 100000, income: 100},
     "Apprentice mage": {name: "Apprentice mage", maxXp: 1000000, income: 1000},
     "Mage": {name: "Mage", maxXp: 10000000, income: 7500},
-    "Wizard": {name: "Wizard", maxXp: 100000000, income: 50000},
+    "Grand wizard": {name: "Grand wizard", maxXp: 100000000, income: 50000},
     "Master wizard": {name: "Master wizard", maxXp: 10000000000, income: 250000},
     "Chairman": {name: "Chairman", maxXp: 1000000000000, income: 1000000},
+    // Mythical / Overlord Jobs
+    "Trade Prince": {name: "Trade Prince", maxXp: 500, income: 500000},
+    "Shadow Broker": {name: "Shadow Broker", maxXp: 2000, income: 1500000},
+    "Midas": {name: "Midas", maxXp: 10000, income: 10000000},
 }
 
 const skillBaseData = {
@@ -67,7 +80,8 @@ const skillBaseData = {
     "Battle tactics": {name: "Battle tactics", maxXp: 100, effect: 0.01, description: "Military xp"},
     "Muscle memory": {name: "Muscle memory", maxXp: 100, effect: 0.01, description: "Strength xp"},
 
-    "Mana control": {name: "Mana control", maxXp: 100, effect: 0.01, description: "T.A.A. xp"},
+    "Mana control": {name: "Mana control", maxXp: 100, effect: 0.01, description: "Magic & Mage xp"},
+    "Spellcraft": {name: "Spellcraft", maxXp: 150, effect: 0.02, description: "Mage income & xp"},
     "Immortality": {name: "Immortality", maxXp: 100, effect: 0.01, description: "Longer lifespan"},
     "Time warping": {name: "Time warping", maxXp: 100, effect: 0.01, description: "Gamespeed"},
     "Super immortality": {name: "Super immortality", maxXp: 100, effect: 0.01, description: "Longer lifespan"},
@@ -78,7 +92,6 @@ const skillBaseData = {
     "Demon training": {name: "Demon training", maxXp: 100, effect: 0.01, description: "All xp"},
     "Blood meditation": {name: "Blood meditation", maxXp: 100, effect: 0.01, description: "Evil gain"},
     "Demon's wealth": {name: "Demon's wealth", maxXp: 100, effect: 0.002, description: "Job pay"},
-    
 }
 
 const itemBaseData = {
@@ -104,13 +117,15 @@ const itemBaseData = {
 const jobCategories = {
     "Common work": ["Beggar", "Farmer", "Fisherman", "Miner", "Blacksmith", "Merchant"],
     "Military" : ["Squire", "Footman", "Veteran footman", "Knight", "Veteran knight", "Elite knight", "Holy knight", "Legendary knight"],
-    "The Arcane Association" : ["Student", "Apprentice mage", "Mage", "Wizard", "Master wizard", "Chairman"]
+    "Mage": ["Apprentice", "Wizard", "Archmage"],
+    "The Arcane Association" : ["Student", "Apprentice mage", "Mage", "Grand wizard", "Master wizard", "Chairman"],
+    "Mythical / Overlord": ["Trade Prince", "Shadow Broker", "Midas"]
 }
 
 const skillCategories = {
     "Fundamentals": ["Concentration", "Productivity", "Bargaining", "Meditation"],
     "Combat": ["Strength", "Battle tactics", "Muscle memory"],
-    "Magic": ["Mana control", "Immortality", "Time warping", "Super immortality"],
+    "Magic": ["Mana control", "Spellcraft", "Immortality", "Time warping", "Super immortality"],
     "Dark magic": ["Dark influence", "Evil control", "Intimidation", "Demon training", "Blood meditation", "Demon's wealth"]
 }
 
@@ -119,17 +134,21 @@ const itemCategories = {
     "Misc": ["Book", "Dumbbells", "Personal squire", "Steel longsword", "Butler", "Sapphire charm", "Study desk", "Library"]
 }
 
-const headerRowColors = {
-    "Common work": "#55a630",
-    "Military": "#e63946",
-    "The Arcane Association": "#C71585",
-    "Fundamentals": "#4a4e69",
-    "Combat": "#ff704d",
-    "Magic": "#875F9A",
-    "Dark magic": "#73000f",
-    "Properties": "#219ebc",
-    "Misc": "#b56576",
+const categoryAccentColors = {
+    "Common work": "#3b82f6",
+    "Military": "#f43f5e",
+    "Mage": "#a855f7",
+    "The Arcane Association": "#c084fc",
+    "Mythical / Overlord": "#f59e0b",
+    "Fundamentals": "#64748b",
+    "Combat": "#f97316",
+    "Magic": "#38bdf8",
+    "Dark magic": "#ec4899",
+    "Properties": "#10b981",
+    "Misc": "#14b8a6",
 }
+
+const headerRowColors = categoryAccentColors
 
 const tooltips = {
     "Beggar": "Struggle day and night for a couple of copper coins. It feels like you are at the brink of death each day.",
@@ -143,17 +162,25 @@ const tooltips = {
     "Footman": "Put down your life to battle with enemy soldiers. A courageous, respectable job but you are still worthless in the grand scheme of things.",
     "Veteran footman": "More experienced and useful than the average footman, take out the enemy forces in battle with your might. The pay is not that bad.",
     "Knight": "Slash and pierce through enemy soldiers with ease, while covered in steel from head to toe. A decently paying and very respectable job.",
-    "Veteran knight": "Utilising your unmatched combat ability, slaugher enemies effortlessly. Most footmen in the military would never be able to acquire such a well paying job like this.",
+    "Veteran knight": "Utilising your unmatched combat ability, slaughter enemies effortlessly. Most footmen in the military would never be able to acquire such a well paying job like this.",
     "Elite knight": "Obliterate squadrons of enemy soldiers in one go with extraordinary proficiency, while equipped with the finest gear. Such a feared unit on the battlefield is paid extremely well.",
     "Holy knight": "Collapse entire armies in mere seconds with your magically imbued blade. The handful of elite knights who attain this level of power are showered with coins.",
     "Legendary knight": "Feared worldwide, obliterate entire nations in a blink of an eye. Roughly every century, only one holy knight is worthy of receiving such an esteemed title.",
 
+    "Apprentice": "Channel your internal mana through basic spell incantations. Generous pay for an eager student of the arcane arts.",
+    "Wizard": "Wield destructive arcane spells and unravel cosmic mysteries. Revered and richly compensated by kingdoms far and wide.",
+    "Archmage": "Master of elemental forces, space, and reality. An apex spellcaster who commands immense fortunes and celestial power.",
+
     "Student": "Study the theory of mana and practice basic spells. There is minor pay to cover living costs, however, this is a necessary stage in becoming a mage.",
     "Apprentice mage": "Under the supervision of a mage, perform basic spells against enemies in battle. Generous pay will be provided to cover living costs.",
     "Mage": "Turn the tides of battle through casting intermediate spells and mentor other apprentices. The pay for this particular job is extremely high.",
-    "Wizard": "Utilise advanced spells to ravage and destroy entire legions of enemy soldiers. Only a small percentage of mages deserve to attain this role and are rewarded with an insanely high pay.",
+    "Grand wizard": "Utilise advanced spells to ravage and destroy entire legions of enemy soldiers. Rewarded with an insanely high pay.",
     "Master wizard": "Blessed with unparalleled talent, perform unbelievable feats with magic at will. It is said that a master wizard has enough destructive power to wipe an empire off the map.",
     "Chairman": "Spend your days administrating The Arcane Association and investigate the concepts of true immortality. The chairman receives ludicrous amounts of pay daily.",
+
+    "Trade Prince": "Ruler of subterranean syndicates and global monopolies. Grants +2x global income to all jobs.",
+    "Shadow Broker": "Whisperer of continental secrets and dealer of nations. Bestows a permanent +10% boost to all skill XP.",
+    "Midas": "The Mythical Golden King whose touch turns every burden to gold. Completely reduces all daily living expenses to 0.",
 
     "Concentration": "Improve your learning speed through practising intense concentration activities.",
     "Productivity": "Learn to procrastinate less at work and receive more job experience per day.",
@@ -165,6 +192,7 @@ const tooltips = {
     "Muscle memory": "Strengthen your neurons through habit and repetition, improving strength gains throughout the body.",
 
     "Mana control": "Strengthen your mana channels throughout your body, aiding you in becoming a more powerful magical user.",
+    "Spellcraft": "Refine the art of shaping magical energy into incantations, heavily boosting Mage class income and experience.",
     "Immortality": "Lengthen your lifespan through the means of magic. However, is this truly the immortality you have tried seeking for...?",
     "Time warping": "Bend space and time through forbidden techniques, resulting in a faster gamespeed.",
     "Super immortality": "Through harnessing ancient, forbidden techniques, lengthen your lifespan drastically beyond comprehension.",
@@ -173,7 +201,7 @@ const tooltips = {
     "Evil control": "Tame the raging and growing evil within you, improving evil gain in-between rebirths.",
     "Intimidation": "Learn to emit a devilish aura which strikes extreme fear into other merchants, forcing them to give you heavy discounts.",
     "Demon training": "A mere human body is too feeble and weak to withstand evil. Train with forbidden methods to slowly manifest into a demon, capable of absorbing knowledge rapidly.",
-    "Blood meditation": "Grow and culture the evil within you through the sacrifise of other living beings, drastically increasing evil gain.",
+    "Blood meditation": "Grow and culture the evil within you through the sacrifice of other living beings, drastically increasing evil gain.",
     "Demon's wealth": "Through the means of dark magic, multiply the raw matter of the coins you receive from your job.",
 
     "Homeless": "Sleep on the uncomfortable, filthy streets while almost freezing to death every night. It cannot get any worse than this.",
@@ -186,31 +214,185 @@ const tooltips = {
     "Grand palace": "A grand residence completely composed of gold and silver. Provides the utmost luxurious and comfortable living conditions possible for a ludicrous price.",
 
     "Book": "A place to write down all your thoughts and discoveries, allowing you to learn a lot more quickly.",
-    "Dumbbells": "Heavy tools used in strenuous exercise to toughen up and accumulate strength even faster than before. ",
+    "Dumbbells": "Heavy tools used in strenuous exercise to toughen up and accumulate strength even faster than before.",
     "Personal squire": "Assists you in completing day to day activities, giving you more time to be productive at work.",
     "Steel longsword": "A fine blade used to slay enemies even quicker in combat and therefore gain more experience.",
     "Butler": "Keeps your household clean at all times and also prepares three delicious meals per day, leaving you in a happier, stress-free mood.",
     "Sapphire charm": "Embedded with a rare sapphire, this charm activates more mana channels within your body, providing a much easier time learning magic.",
-    "Study desk": "A dedicated area which provides many fine stationary and equipment designed for furthering your progress in research.",
+    "Study desk": "A dedicated area which provides many fine stationery and equipment designed for furthering your progress in research.",
     "Library": "Stores a collection of books, each containing vast amounts of information from basic life skills to complex magic spells.",
 }
 
-const units = ["", "k", "M", "B", "T", "q", "Q", "Sx", "Sp", "Oc"];
-
+const units = ["", "k", "M", "B", "T", "q", "Q", "Sx", "Sp", "Oc"]
 const jobTabButton = document.getElementById("jobTabButton")
 
-function getBaseLog(x, y) {
-    return Math.log(y) / Math.log(x);
+const demonRanks = [
+    // Tier 1: Lesser Spawns (Level 1 - 10)
+    {minLvl: 0, maxLvl: 2, name: "Imp (Chhote Shaitan)", tier: "🟢 Tier 1: Lesser Spawn", desc: "Chote, udte hue demons jo chaos failate hain.", bonus: 1.05},
+    {minLvl: 3, maxLvl: 4, name: "Gremlin", tier: "🟢 Tier 1: Lesser Spawn", desc: "Machines aur magic ko kharab karne wale.", bonus: 1.10},
+    {minLvl: 5, maxLvl: 6, name: "Hellhound (Narki Kutta)", tier: "🟢 Tier 1: Lesser Spawn", desc: "Aag se bane hue kutton jaise shikari.", bonus: 1.15},
+    {minLvl: 7, maxLvl: 8, name: "Fiend", tier: "🟢 Tier 1: Lesser Spawn", desc: "Basic infantry demonic warrior.", bonus: 1.20},
+    {minLvl: 9, maxLvl: 10, name: "Wraith (Pret)", tier: "🟢 Tier 1: Lesser Spawn", desc: "Sirf aatmaon wale demons jo rooh par attack karte hain.", bonus: 1.25},
+
+    // Tier 2: Mid-Tier Demons (Level 11 - 30)
+    {minLvl: 11, maxLvl: 14, name: "Incubus / Succubus", tier: "🟡 Tier 2: Mid-Tier", desc: "Sapno mein aakar energy aur prana chusne wale.", bonus: 1.35},
+    {minLvl: 15, maxLvl: 18, name: "Oni", tier: "🟡 Tier 2: Mid-Tier", desc: "Giant club wale brutal strong mythological ogres.", bonus: 1.45},
+    {minLvl: 19, maxLvl: 22, name: "Hell Knight", tier: "🟡 Tier 2: Mid-Tier", desc: "Black cursed armor pehne hue heavy damage warriors.", bonus: 1.55},
+    {minLvl: 23, maxLvl: 26, name: "Blood Imp", tier: "🟡 Tier 2: Mid-Tier", desc: "Khoon se bane hue demons jo har hit par heal hote hain.", bonus: 1.65},
+    {minLvl: 27, maxLvl: 30, name: "Nightmare Weaver", tier: "🟡 Tier 2: Mid-Tier", desc: "Darr aur illusions create karke dimag todne wale.", bonus: 1.75},
+
+    // Tier 3: High-Tier Demons (Level 31 - 60)
+    {minLvl: 31, maxLvl: 37, name: "Archfiend", tier: "🟠 Tier 3: High-Tier", desc: "Powerful demons jo sins (Pride, Greed, Wrath) ko lead karte hain.", bonus: 1.90},
+    {minLvl: 38, maxLvl: 44, name: "Balrog (Infernal Beast)", tier: "🟠 Tier 3: High-Tier", desc: "Aag ke whip wale, pahadon jitne vishalkay demons.", bonus: 2.10},
+    {minLvl: 45, maxLvl: 52, name: "Shadow Stalker", tier: "🟠 Tier 3: High-Tier", desc: "Andhere mein ghumne wale, one-hit lethal assassins.", bonus: 2.30},
+    {minLvl: 53, maxLvl: 60, name: "Demon Lord", tier: "🟠 Tier 3: High-Tier", desc: "Poori demon armies ke commanding generals.", bonus: 2.50},
+
+    // Tier 4: Elite & Commander Tier (Level 61 - 100)
+    {minLvl: 61, maxLvl: 70, name: "Demon Duke (Narki Sardar)", tier: "🔴 Tier 4: Elite Commander", desc: "Infernal legions ke high-ranking lord generals.", bonus: 2.80},
+    {minLvl: 71, maxLvl: 80, name: "Abyssal Prince (Patal Rajkumar)", tier: "🔴 Tier 4: Elite Commander", desc: "Hell ke specific regions (Fire, Ice) ke rulers.", bonus: 3.20},
+    {minLvl: 81, maxLvl: 90, name: "Archdemon", tier: "🔴 Tier 4: Elite Commander", desc: "Prachin aur pralaykari powerful demonic entities.", bonus: 3.60},
+    {minLvl: 91, maxLvl: 100, name: "The Seven Sin Incarnates", tier: "🔴 Tier 4: Elite Commander", desc: "Asli Wrath, Lust, Greed ke sakshat demon roop.", bonus: 4.00},
+
+    // Tier 5: Sovereign Tier (Level 101 - 200)
+    {minLvl: 101, maxLvl: 125, name: "Demon King (Maou)", tier: "🟣 Tier 5: Sovereign", desc: "Poore demon race ka ek sarvochch samrat.", bonus: 5.00},
+    {minLvl: 126, maxLvl: 150, name: "Abyssal Sovereign", tier: "🟣 Tier 5: Sovereign", desc: "Anant patal lok (Abyss) ka amar rakshak.", bonus: 6.00},
+    {minLvl: 151, maxLvl: 175, name: "The Fallen One / Lucifer", tier: "🟣 Tier 5: Sovereign", desc: "Jise swarg se nikala gaya; ultimate black magic lord.", bonus: 7.50},
+    {minLvl: 176, maxLvl: 200, name: "The Devourer", tier: "🟣 Tier 5: Sovereign", desc: "Jo poore brahmand ki prana aur aatma kha jata hai.", bonus: 9.00},
+
+    // Tier 6: GOD TIER (Level 200+)
+    {minLvl: 201, maxLvl: 250, name: "Demon God (Mazoku no Kami)", tier: "🌟 Tier 6: GOD TIER", desc: "Jo khud demon se bhagwan aur cosmic entity ban gaya.", bonus: 12.00},
+    {minLvl: 251, maxLvl: 300, name: "Primordial Demon", tier: "🌟 Tier 6: GOD TIER", desc: "Jo samay shuru hone se pehle ka Space-Time ruler hai.", bonus: 16.00},
+    {minLvl: 301, maxLvl: 350, name: "Satan / The Devil", tier: "🌟 Tier 6: GOD TIER", desc: "Universe ke ultimate evil aur darkness ka mool strot.", bonus: 20.00},
+    {minLvl: 351, maxLvl: 400, name: "Azathoth (The Blind Idiot God)", tier: "🌟 Tier 6: GOD TIER", desc: "Cosmic horror ka ultimate supreme deity.", bonus: 25.00},
+    {minLvl: 401, maxLvl: Infinity, name: "The Absolute Void", tier: "🌟 Tier 6: GOD TIER", desc: "Jahan se saari dark magic aur reality janam leti hai.", bonus: 35.00},
+]
+
+
+function getCurrentDemonRank() {
+    var dt = gameData.taskData["Demon training"]
+    var dtLvl = dt ? Math.max(dt.level, dt.maxLevel || 0) : 0
+    var evilEquivalentLvl = Math.floor(gameData.evil / 10)
+    var lvl = Math.max(dtLvl, evilEquivalentLvl)
+
+    for (var i = 0; i < demonRanks.length; i++) {
+        var r = demonRanks[i]
+        if (lvl >= r.minLvl && lvl <= r.maxLvl) {
+            return r
+        }
+    }
+    return demonRanks[demonRanks.length - 1]
 }
-  
+
+function getDemonRankMultiplier() {
+    if (gameData.evil <= 0 && gameData.rebirthTwoCount <= 0 && (!gameData.taskData["Demon training"] || gameData.taskData["Demon training"].level === 0)) {
+        return 1
+    }
+    var rank = getCurrentDemonRank()
+    return rank ? rank.bonus : 1
+}
+
+function getBaseLog(x, y) {
+    return Math.log(y) / Math.log(x)
+}
+
 function getBindedTaskEffect(taskName) {
     var task = gameData.taskData[taskName]
+    if (!task) return function() { return 1 }
     return task.getEffect.bind(task)
 }
 
 function getBindedItemEffect(itemName) {
     var item = gameData.itemData[itemName]
+    if (!item) return function() { return 1 }
     return item.getEffect.bind(item)
+}
+
+function setGameSpeedMultiplier(mult) {
+    gameSpeedMultiplier = mult
+    var speedBtns = document.getElementsByClassName("speed-btn")
+    for (var btn of speedBtns) {
+        if (parseInt(btn.getAttribute("data-speed")) === mult) {
+            btn.classList.add("active")
+        } else {
+            btn.classList.remove("active")
+        }
+    }
+}
+
+function getPrestigeMultiplier() {
+    return 1 + (gameData.prestigePoints || 0) * 0.10
+}
+
+function getTradePrinceEffect() {
+    var tp = gameData.taskData["Trade Prince"]
+    return (tp && tp.level > 0) ? 2 : 1
+}
+
+function getShadowBrokerEffect() {
+    var sb = gameData.taskData["Shadow Broker"]
+    return (sb && sb.level > 0) ? 1.10 : 1
+}
+
+function buyMerchantsBlessing() {
+    if (gameData.merchantsBlessing) return
+    if ((gameData.prestigePoints || 0) < 5) return
+    gameData.prestigePoints -= 5
+    gameData.merchantsBlessing = true
+    if (gameData.coins < 1000000) {
+        gameData.coins = 1000000
+    }
+    updateUI()
+}
+
+function getPrestigePointsGain() {
+    var age = daysToYears(gameData.days)
+    if (age < 70) return 0
+    var points = 1 + Math.floor((age - 70) / 5)
+    return Math.max(1, points)
+}
+
+function prestige() {
+    var gain = getPrestigePointsGain()
+    if (gain <= 0) return
+    gameData.prestigePoints = (gameData.prestigePoints || 0) + gain
+    rebirthReset()
+    updateUI()
+}
+
+function toggleAutoTask(taskName) {
+    var task = gameData.taskData[taskName]
+    if (!task) return
+    if (task instanceof Job) {
+        gameData.autoJob = (gameData.autoJob === taskName) ? null : taskName
+        if (gameData.autoJob) {
+            gameData.currentJob = task
+        }
+    } else if (task instanceof Skill) {
+        gameData.autoSkill = (gameData.autoSkill === taskName) ? null : taskName
+        if (gameData.autoSkill) {
+            gameData.currentSkill = task
+        }
+    }
+    updateTaskRows()
+}
+
+function checkAutoAssign() {
+    if (gameData.autoJob && gameData.taskData[gameData.autoJob]) {
+        var autoJobReq = gameData.requirements[gameData.autoJob]
+        if (!autoJobReq || autoJobReq.isCompleted()) {
+            if (gameData.currentJob.name !== gameData.autoJob) {
+                gameData.currentJob = gameData.taskData[gameData.autoJob]
+            }
+        }
+    }
+    if (gameData.autoSkill && gameData.taskData[gameData.autoSkill]) {
+        var autoSkillReq = gameData.requirements[gameData.autoSkill]
+        if (!autoSkillReq || autoSkillReq.isCompleted()) {
+            if (gameData.currentSkill.name !== gameData.autoSkill) {
+                gameData.currentSkill = gameData.taskData[gameData.autoSkill]
+            }
+        }
+    }
 }
 
 function addMultipliers() {
@@ -224,10 +406,14 @@ function addMultipliers() {
         task.xpMultipliers.push(getHappiness)
         task.xpMultipliers.push(getBindedTaskEffect("Dark influence"))
         task.xpMultipliers.push(getBindedTaskEffect("Demon training"))
+        task.xpMultipliers.push(getPrestigeMultiplier)
+        task.xpMultipliers.push(getDemonRankMultiplier)
 
         if (task instanceof Job) {
             task.incomeMultipliers.push(task.getLevelMultiplier.bind(task))
             task.incomeMultipliers.push(getBindedTaskEffect("Demon's wealth"))
+            task.incomeMultipliers.push(getPrestigeMultiplier)
+            task.incomeMultipliers.push(getTradePrinceEffect)
             task.xpMultipliers.push(getBindedTaskEffect("Productivity"))
             task.xpMultipliers.push(getBindedItemEffect("Personal squire"))    
         } else if (task instanceof Skill) {
@@ -235,17 +421,36 @@ function addMultipliers() {
             task.xpMultipliers.push(getBindedItemEffect("Book"))
             task.xpMultipliers.push(getBindedItemEffect("Study desk"))
             task.xpMultipliers.push(getBindedItemEffect("Library"))
+            task.xpMultipliers.push(getShadowBrokerEffect)
         }
 
         if (jobCategories["Military"].includes(task.name)) {
             task.incomeMultipliers.push(getBindedTaskEffect("Strength"))
             task.xpMultipliers.push(getBindedTaskEffect("Battle tactics"))
             task.xpMultipliers.push(getBindedItemEffect("Steel longsword"))
+        } else if (jobCategories["Mage"] && jobCategories["Mage"].includes(task.name)) {
+            // Mage class scaling heavily off Magic skills
+            task.incomeMultipliers.push(getBindedTaskEffect("Mana control"))
+            task.incomeMultipliers.push(getBindedTaskEffect("Spellcraft"))
+            task.xpMultipliers.push(getBindedTaskEffect("Mana control"))
+            task.xpMultipliers.push(getBindedTaskEffect("Spellcraft"))
+            // Additional heavy magic resonance
+            task.xpMultipliers.push(function() {
+                var mc = gameData.taskData["Mana control"]
+                return 1 + (mc ? mc.level * 0.05 : 0)
+            })
+            task.incomeMultipliers.push(function() {
+                var mc = gameData.taskData["Mana control"]
+                return 1 + (mc ? mc.level * 0.08 : 0)
+            })
         } else if (task.name == "Strength") {
             task.xpMultipliers.push(getBindedTaskEffect("Muscle memory"))
             task.xpMultipliers.push(getBindedItemEffect("Dumbbells"))
         } else if (skillCategories["Magic"].includes(task.name)) {
             task.xpMultipliers.push(getBindedItemEffect("Sapphire charm"))
+            if (task.name == "Spellcraft") {
+                task.xpMultipliers.push(getBindedTaskEffect("Mana control"))
+            }
         } else if (jobCategories["The Arcane Association"].includes(task.name)) {
             task.xpMultipliers.push(getBindedTaskEffect("Mana control"))
         } else if (skillCategories["Dark magic"].includes(task.name)) {
@@ -263,36 +468,45 @@ function addMultipliers() {
 
 function setCustomEffects() {
     var bargaining = gameData.taskData["Bargaining"]
-    bargaining.getEffect = function() {
-        var multiplier = 1 - getBaseLog(7, bargaining.level + 1) / 10
-        if (multiplier < 0.1) {multiplier = 0.1}
-        return multiplier
+    if (bargaining) {
+        bargaining.getEffect = function() {
+            var multiplier = 1 - getBaseLog(7, bargaining.level + 1) / 10
+            if (multiplier < 0.1) {multiplier = 0.1}
+            return multiplier
+        }
     }
 
     var intimidation = gameData.taskData["Intimidation"]
-    intimidation.getEffect = function() {
-        var multiplier = 1 - getBaseLog(7, intimidation.level + 1) / 10
-        if (multiplier < 0.1) {multiplier = 0.1}
-        return multiplier
+    if (intimidation) {
+        intimidation.getEffect = function() {
+            var multiplier = 1 - getBaseLog(7, intimidation.level + 1) / 10
+            if (multiplier < 0.1) {multiplier = 0.1}
+            return multiplier
+        }
     }
 
     var timeWarping = gameData.taskData["Time warping"]
-    timeWarping.getEffect = function() {
-        var multiplier = 1 + getBaseLog(13, timeWarping.level + 1) 
-        return multiplier
+    if (timeWarping) {
+        timeWarping.getEffect = function() {
+            var multiplier = 1 + getBaseLog(13, timeWarping.level + 1) 
+            return multiplier
+        }
     }
 
     var immortality = gameData.taskData["Immortality"]
-    immortality.getEffect = function() {
-        var multiplier = 1 + getBaseLog(33, immortality.level + 1) 
-        return multiplier
+    if (immortality) {
+        immortality.getEffect = function() {
+            var multiplier = 1 + getBaseLog(33, immortality.level + 1) 
+            return multiplier
+        }
     }
 }
 
 function getHappiness() {
     var meditationEffect = getBindedTaskEffect("Meditation")
     var butlerEffect = getBindedItemEffect("Butler")
-    var happiness = meditationEffect() * butlerEffect() * gameData.currentProperty.getEffect()
+    var propEffect = gameData.currentProperty ? gameData.currentProperty.getEffect() : 1
+    var happiness = meditationEffect() * butlerEffect() * propEffect
     return happiness
 }
 
@@ -311,21 +525,21 @@ function applyMultipliers(value, multipliers) {
 }
 
 function applySpeed(value) {
-    finalValue = value * getGameSpeed() / updateSpeed
+    var finalValue = value * getGameSpeed() / updateSpeed
     return finalValue
 }
 
 function getEvilGain() {
     var evilControl = gameData.taskData["Evil control"]
     var bloodMeditation = gameData.taskData["Blood meditation"]
-    var evil = evilControl.getEffect() * bloodMeditation.getEffect()
+    var evil = (evilControl ? evilControl.getEffect() : 1) * (bloodMeditation ? bloodMeditation.getEffect() : 1) * getDemonRankMultiplier()
     return evil
 }
 
 function getGameSpeed() {
     var timeWarping = gameData.taskData["Time warping"]
-    var timeWarpingSpeed = gameData.timeWarpingEnabled ? timeWarping.getEffect() : 1
-    var gameSpeed = baseGameSpeed * +!gameData.paused * +isAlive() * timeWarpingSpeed
+    var timeWarpingSpeed = (timeWarping && gameData.timeWarpingEnabled) ? timeWarping.getEffect() : 1
+    var gameSpeed = baseGameSpeed * +!gameData.paused * +isAlive() * timeWarpingSpeed * gameSpeedMultiplier
     return gameSpeed
 }
 
@@ -338,10 +552,16 @@ function applyExpenses() {
 }
 
 function getExpense() {
+    var midas = gameData.taskData["Midas"]
+    if (midas && midas.level > 0) return 0
     var expense = 0
-    expense += gameData.currentProperty.getExpense()
-    for (misc of gameData.currentMisc) {
-        expense += misc.getExpense()
+    if (gameData.currentProperty) {
+        expense += gameData.currentProperty.getExpense()
+    }
+    if (gameData.currentMisc) {
+        for (misc of gameData.currentMisc) {
+            expense += misc.getExpense()
+        }
     }
     return expense
 }
@@ -353,18 +573,18 @@ function goBankrupt() {
 }
 
 function setTab(element, selectedTab) {
-
     var tabs = Array.prototype.slice.call(document.getElementsByClassName("tab"))
     tabs.forEach(function(tab) {
         tab.style.display = "none"
     })
-    document.getElementById(selectedTab).style.display = "block"
+    var targetTab = document.getElementById(selectedTab)
+    if (targetTab) targetTab.style.display = "block"
 
     var tabButtons = document.getElementsByClassName("tabButton")
     for (tabButton of tabButtons) {
         tabButton.classList.remove("w3-blue-gray")
     }
-    element.classList.add("w3-blue-gray")
+    if (element) element.classList.add("w3-blue-gray")
 }
 
 function setPause() {
@@ -377,18 +597,20 @@ function setTimeWarping() {
 
 function setTask(taskName) {
     var task = gameData.taskData[taskName]
+    if (!task) return
     task instanceof Job ? gameData.currentJob = task : gameData.currentSkill = task
 }
 
 function setProperty(propertyName) {
     var property = gameData.itemData[propertyName]
-    gameData.currentProperty = property
+    if (property) gameData.currentProperty = property
 }
 
 function setMisc(miscName) {
     var misc = gameData.itemData[miscName]
+    if (!misc) return
     if (gameData.currentMisc.includes(misc)) {
-        for (i = 0; i < gameData.currentMisc.length; i++) {
+        for (var i = 0; i < gameData.currentMisc.length; i++) {
             if (gameData.currentMisc[i] == misc) {
                 gameData.currentMisc.splice(i, 1)
             }
@@ -427,8 +649,10 @@ function createHeaderRow(templates, categoryType, categoryName) {
         headerRow.getElementsByClassName("valueType")[0].textContent = categoryType == jobCategories ? "Income/day" : "Effect"
     }
 
-    headerRow.style.backgroundColor = headerRowColors[categoryName]
-    headerRow.style.color = "#ffffff"
+    var accent = categoryAccentColors[categoryName] || "#3b82f6"
+    headerRow.style.background = "linear-gradient(90deg, " + accent + "33 0%, rgba(24, 29, 42, 0.95) 100%)"
+    headerRow.style.borderLeft = "4px solid " + accent
+    headerRow.style.color = "#f8fafc"
     headerRow.classList.add(removeSpaces(categoryName))
     headerRow.classList.add("headerRow")
     
@@ -438,10 +662,17 @@ function createHeaderRow(templates, categoryType, categoryName) {
 function createRow(templates, name, categoryName, categoryType) {
     var row = templates.row.content.firstElementChild.cloneNode(true)
     row.getElementsByClassName("name")[0].textContent = name
-    row.getElementsByClassName("tooltipText")[0].textContent = tooltips[name]
+    row.getElementsByClassName("tooltipText")[0].textContent = tooltips[name] || ""
     row.id = "row " + name
     if (categoryType != itemCategories) {
         row.getElementsByClassName("progressBar")[0].onclick = function() {setTask(name)}
+        var autoBtn = row.getElementsByClassName("autoButton")[0]
+        if (autoBtn) {
+            autoBtn.onclick = function(e) {
+                e.stopPropagation()
+                toggleAutoTask(name)
+            }
+        }
     } else {
         row.getElementsByClassName("button")[0].onclick = categoryName == "Properties" ? function() {setProperty(name)} : function() {setMisc(name)}
     }
@@ -474,6 +705,7 @@ function createAllRows(categoryType, tableId) {
 
 function updateQuickTaskDisplay(taskType) {
     var currentTask = taskType == "job" ? gameData.currentJob : gameData.currentSkill
+    if (!currentTask) return
     var quickTaskDisplayElement = document.getElementById("quickTaskDisplay")
     var progressBar = quickTaskDisplayElement.getElementsByClassName(taskType)[0]
     progressBar.getElementsByClassName("name")[0].textContent = currentTask.name + " lvl " + currentTask.level
@@ -486,7 +718,7 @@ function updateRequiredRows(data, categoryType) {
         var nextEntity = null
         var category = categoryType[requiredRow.id] 
         if (category == null) {continue}
-        for (i = 0; i < category.length; i++) {
+        for (var i = 0; i < category.length; i++) {
             var entityName = category[i]
             if (i >= category.length - 1) break
             var requirements = gameData.requirements[entityName]
@@ -500,9 +732,9 @@ function updateRequiredRows(data, categoryType) {
             var nextIndex = i + 1
             if (nextIndex >= category.length) {break}
             var nextEntityName = category[nextIndex]
-            nextEntityRequirements = gameData.requirements[nextEntityName]
+            var nextEntityRequirements = gameData.requirements[nextEntityName]
 
-            if (!nextEntityRequirements.isCompleted()) {
+            if (nextEntityRequirements && !nextEntityRequirements.isCompleted()) {
                 nextEntity = data[nextEntityName]
                 break
             }       
@@ -513,6 +745,7 @@ function updateRequiredRows(data, categoryType) {
         } else {
             requiredRow.classList.remove("hiddenTask")
             var requirementObject = gameData.requirements[nextEntity.name]
+            if (!requirementObject) continue
             var requirements = requirementObject.requirements
 
             var coinElement = requiredRow.getElementsByClassName("coins")[0]
@@ -531,10 +764,16 @@ function updateRequiredRows(data, categoryType) {
                 } else {
                     levelElement.classList.remove("hiddenTask")
                     for (requirement of requirements) {
-                        var task = gameData.taskData[requirement.task]
-                        if (task.level >= requirement.requirement) continue
-                        var text = " " + requirement.task + " level " + format(task.level) + "/" + format(requirement.requirement) + ","
-                        finalText += text
+                        if (requirement.task) {
+                            var task = gameData.taskData[requirement.task]
+                            if (!task || task.level >= requirement.requirement) continue
+                            var text = " " + requirement.task + " level " + format(task.level) + "/" + format(requirement.requirement) + ","
+                            finalText += text
+                        } else if (requirement.coins !== undefined) {
+                            if (gameData.coins >= requirement.coins) continue
+                            var text = " " + format(requirement.coins) + " coins,"
+                            finalText += text
+                        }
                     }
                     finalText = finalText.substring(0, finalText.length - 1)
                     levelElement.textContent = finalText
@@ -551,6 +790,7 @@ function updateTaskRows() {
     for (key in gameData.taskData) {
         var task = gameData.taskData[key]
         var row = document.getElementById("row " + task.name)
+        if (!row) continue
         row.getElementsByClassName("level")[0].textContent = task.level
         row.getElementsByClassName("xpGain")[0].textContent = format(task.getXpGain())
         row.getElementsByClassName("xpLeft")[0].textContent = format(task.getXpLeft())
@@ -561,14 +801,36 @@ function updateTaskRows() {
 
         var progressFill = row.getElementsByClassName("progressFill")[0]
         progressFill.style.width = task.xp / task.getMaxXp() * 100 + "%"
-        task == gameData.currentJob || task == gameData.currentSkill ? progressFill.classList.add("current") : progressFill.classList.remove("current")
+        var isCurrent = (task == gameData.currentJob || task == gameData.currentSkill)
+        if (isCurrent) {
+            progressFill.classList.add("current")
+            row.classList.add("active-task-row")
+        } else {
+            progressFill.classList.remove("current")
+            row.classList.remove("active-task-row")
+        }
 
         var valueElement = row.getElementsByClassName("value")[0]
-        valueElement.getElementsByClassName("income")[0].style.display = task instanceof Job
-        valueElement.getElementsByClassName("effect")[0].style.display = task instanceof Skill
+        valueElement.getElementsByClassName("income")[0].style.display = task instanceof Job ? "block" : "none"
+        valueElement.getElementsByClassName("effect")[0].style.display = task instanceof Skill ? "block" : "none"
 
         var skipSkillElement = row.getElementsByClassName("skipSkill")[0]
-        skipSkillElement.style.display = task instanceof Skill && autoLearnElement.checked ? "block" : "none"
+        if (skipSkillElement) {
+            skipSkillElement.style.display = (task instanceof Skill && autoLearnElement && autoLearnElement.checked) ? "block" : "none"
+        }
+
+        // Auto Assign Button update
+        var autoBtn = row.getElementsByClassName("autoButton")[0]
+        if (autoBtn) {
+            var isAuto = (task instanceof Job && gameData.autoJob === task.name) || (task instanceof Skill && gameData.autoSkill === task.name)
+            if (isAuto) {
+                autoBtn.textContent = "Auto: ON"
+                autoBtn.classList.add("auto-active")
+            } else {
+                autoBtn.textContent = "Auto: OFF"
+                autoBtn.classList.remove("auto-active")
+            }
+        }
 
         if (task instanceof Job) {
             formatCoins(task.getIncome(), valueElement.getElementsByClassName("income")[0])
@@ -582,11 +844,14 @@ function updateItemRows() {
     for (key in gameData.itemData) {
         var item = gameData.itemData[key]
         var row = document.getElementById("row " + item.name)
+        if (!row) continue
         var button = row.getElementsByClassName("button")[0]
         button.disabled = gameData.coins < item.getExpense()
         var active = row.getElementsByClassName("active")[0]
-        var color = itemCategories["Properties"].includes(item.name) ? headerRowColors["Properties"] : headerRowColors["Misc"]
-        active.style.backgroundColor = gameData.currentMisc.includes(item) || item == gameData.currentProperty ? color : "white"
+        var color = itemCategories["Properties"].includes(item.name) ? categoryAccentColors["Properties"] : categoryAccentColors["Misc"]
+        var isBought = (gameData.currentMisc.includes(item) || item == gameData.currentProperty)
+        active.style.backgroundColor = isBought ? color : "transparent"
+        active.style.boxShadow = isBought ? "0 0 8px " + color : "none"
         row.getElementsByClassName("effect")[0].textContent = item.getEffectDescription()
         formatCoins(item.getExpense(), row.getElementsByClassName("expense")[0])
     }
@@ -596,15 +861,20 @@ function updateHeaderRows(categories) {
     for (categoryName in categories) {
         var className = removeSpaces(categoryName)
         var headerRow = document.getElementsByClassName(className)[0]
+        if (!headerRow) continue
         var maxLevelElement = headerRow.getElementsByClassName("maxLevel")[0]
-        gameData.rebirthOneCount > 0 ? maxLevelElement.classList.remove("hidden") : maxLevelElement.classList.add("hidden")
+        if (maxLevelElement) {
+            gameData.rebirthOneCount > 0 ? maxLevelElement.classList.remove("hidden") : maxLevelElement.classList.add("hidden")
+        }
         var skipSkillElement = headerRow.getElementsByClassName("skipSkill")[0]
-        skipSkillElement.style.display = categories == skillCategories && autoLearnElement.checked ? "block" : "none"
+        if (skipSkillElement) {
+            skipSkillElement.style.display = (categories == skillCategories && autoLearnElement && autoLearnElement.checked) ? "block" : "none"
+        }
     }
 }
 
 function updateText() {
-    //Sidebar
+    // Sidebar text
     document.getElementById("ageDisplay").textContent = daysToYears(gameData.days)
     document.getElementById("dayDisplay").textContent = getDay()
     document.getElementById("lifespanDisplay").textContent = daysToYears(getLifespan())
@@ -621,8 +891,73 @@ function updateText() {
     document.getElementById("evilDisplay").textContent = gameData.evil.toFixed(1)
     document.getElementById("evilGainDisplay").textContent = getEvilGain().toFixed(1)
 
-    document.getElementById("timeWarpingDisplay").textContent = "x" + gameData.taskData["Time warping"].getEffect().toFixed(2)
+    var timeWarpTask = gameData.taskData["Time warping"]
+    if (timeWarpTask) {
+        document.getElementById("timeWarpingDisplay").textContent = "x" + timeWarpTask.getEffect().toFixed(2)
+    }
     document.getElementById("timeWarpingButton").textContent = gameData.timeWarpingEnabled ? "Disable warp" : "Enable warp"
+
+    // Prestige UI Display
+    var prestigePointsElem = document.getElementById("prestigePointsDisplay")
+    if (prestigePointsElem) {
+        prestigePointsElem.textContent = format(gameData.prestigePoints || 0)
+    }
+    var prestigeMultElem = document.getElementById("prestigeMultiplierDisplay")
+    if (prestigeMultElem) {
+        var bonusPercent = Math.round((getPrestigeMultiplier() - 1) * 100)
+        prestigeMultElem.textContent = "+" + bonusPercent + "% (x" + getPrestigeMultiplier().toFixed(2) + ")"
+    }
+    var prestigeBtn = document.getElementById("prestigeButton")
+    var prestigeGainElem = document.getElementById("prestigeGainDisplay")
+    if (prestigeBtn) {
+        var gain = getPrestigePointsGain()
+        var age = daysToYears(gameData.days)
+        if (age >= 70 || !isAlive()) {
+            prestigeBtn.style.display = "block"
+            if (prestigeGainElem) prestigeGainElem.textContent = format(gain)
+        } else {
+            prestigeBtn.style.display = "none"
+        }
+    }
+
+    var blessingBtn = document.getElementById("merchantsBlessingBtn")
+    if (blessingBtn) {
+        if (gameData.merchantsBlessing) {
+            blessingBtn.textContent = "✓ Active"
+            blessingBtn.disabled = true
+            blessingBtn.style.background = "#059669"
+            blessingBtn.style.borderColor = "#10b981"
+            blessingBtn.style.color = "#ffffff"
+        } else {
+            blessingBtn.textContent = "Buy (5 Pts)"
+            blessingBtn.disabled = (gameData.prestigePoints || 0) < 5
+            blessingBtn.style.background = ""
+            blessingBtn.style.borderColor = ""
+            blessingBtn.style.color = ""
+        }
+    }
+
+    // Demon Hierarchy Section Display
+    var demonCard = document.getElementById("demonHierarchySection")
+    if (demonCard) {
+        if (gameData.evil > 0 || gameData.rebirthTwoCount > 0 || (gameData.taskData["Demon training"] && (gameData.taskData["Demon training"].level > 0 || (gameData.taskData["Demon training"].maxLevel || 0) > 0))) {
+            demonCard.style.display = "block"
+            var currentRank = getCurrentDemonRank()
+            var badgeElem = document.getElementById("demonTierBadge")
+            if (badgeElem) badgeElem.textContent = currentRank.tier
+            var titleElem = document.getElementById("demonRankTitle")
+            if (titleElem) titleElem.textContent = "👹 " + currentRank.name
+            var descElem = document.getElementById("demonRankDesc")
+            if (descElem) descElem.textContent = currentRank.desc
+            var bonusElem = document.getElementById("demonRankBonus")
+            if (bonusElem) {
+                var bonusPct = Math.round((currentRank.bonus - 1) * 100)
+                bonusElem.textContent = "+" + bonusPct + "% All XP & Evil (x" + currentRank.bonus.toFixed(2) + ")"
+            }
+        } else {
+            demonCard.style.display = "none"
+        }
+    }
 }
 
 function setSignDisplay() {
@@ -658,14 +993,8 @@ function hideEntities() {
     }
 }
 
-function createItemData(baseData) {
-    for (var item of baseData) {
-        gameData.itemData[item.name] = "happiness" in item ? new Property(task) : new Misc(task)
-        gameData.itemData[item.name].id = "item " + item.name
-    }
-}
-
 function doCurrentTask(task) {
+    if (!task) return
     task.increaseXp()
     if (task instanceof Job) {
         increaseCoins()
@@ -674,7 +1003,9 @@ function doCurrentTask(task) {
 
 function getIncome() {
     var income = 0
-    income += gameData.currentJob.getIncome()
+    if (gameData.currentJob) {
+        income += gameData.currentJob.getIncome()
+    }
     return income
 }
 
@@ -699,6 +1030,7 @@ function getCategoryFromEntityName(categoryType, entityName) {
 
 function getNextEntity(data, categoryType, entityName) {
     var category = getCategoryFromEntityName(categoryType, entityName)
+    if (!category) return null
     var nextIndex = category.indexOf(entityName) + 1
     if (nextIndex > category.length - 1) return null
     var nextEntityName = category[nextIndex]
@@ -707,15 +1039,16 @@ function getNextEntity(data, categoryType, entityName) {
 }
 
 function autoPromote() {
-    if (!autoPromoteElement.checked) return
+    if (!autoPromoteElement || !autoPromoteElement.checked || !gameData.currentJob) return
     var nextEntity = getNextEntity(gameData.taskData, jobCategories, gameData.currentJob.name)
     if (nextEntity == null) return
     var requirement = gameData.requirements[nextEntity.name]
-    if (requirement.isCompleted()) gameData.currentJob = nextEntity
+    if (requirement && requirement.isCompleted()) gameData.currentJob = nextEntity
 }
 
 function checkSkillSkipped(skill) {
     var row = document.getElementById("row " + skill.name)
+    if (!row) return false
     var isSkillSkipped = row.getElementsByClassName("checkbox")[0].checked
     return isSkillSkipped
 }
@@ -726,18 +1059,18 @@ function setSkillWithLowestMaxXp() {
     for (skillName in gameData.taskData) {
         var skill = gameData.taskData[skillName]
         var requirement = gameData.requirements[skillName]
-        if (skill instanceof Skill && requirement.isCompleted() && !checkSkillSkipped(skill)) {
-            xpDict[skill.name] = skill.level //skill.getMaxXp() / skill.getXpGain()
+        if (skill instanceof Skill && requirement && requirement.isCompleted() && !checkSkillSkipped(skill)) {
+            xpDict[skill.name] = skill.level
         }
     }
 
-    if (xpDict == {}) {
+    if (Object.keys(xpDict).length === 0) {
         skillWithLowestMaxXp = gameData.taskData["Concentration"]
         return
     }
 
-    var skillName = getKeyOfLowestValueFromDict(xpDict)
-    skillWithLowestMaxXp = gameData.taskData[skillName]
+    var lowestSkillName = getKeyOfLowestValueFromDict(xpDict)
+    skillWithLowestMaxXp = gameData.taskData[lowestSkillName]
 }
 
 function getKeyOfLowestValueFromDict(dict) {
@@ -758,7 +1091,7 @@ function getKeyOfLowestValueFromDict(dict) {
 }
 
 function autoLearn() {
-    if (!autoLearnElement.checked || !skillWithLowestMaxXp) return
+    if (!autoLearnElement || !autoLearnElement.checked || !skillWithLowestMaxXp) return
     gameData.currentSkill = skillWithLowestMaxXp
 }
 
@@ -778,25 +1111,19 @@ function increaseDays() {
 }
 
 function format(number) {
+    if (number === 0) return 0
+    var tier = Math.log10(number) / 3 | 0
+    if (tier == 0) return number
 
-    // what tier? (determines SI symbol)
-    var tier = Math.log10(number) / 3 | 0;
+    var suffix = units[tier] || ""
+    var scale = Math.pow(10, tier * 3)
+    var scaled = number / scale
 
-    // if zero, we don't need a suffix
-    if(tier == 0) return number;
-
-    // get suffix and determine scale
-    var suffix = units[tier];
-    var scale = Math.pow(10, tier * 3);
-
-    // scale the number
-    var scaled = number / scale;
-
-    // format number and add suffix
-    return scaled.toFixed(1) + suffix;
+    return scaled.toFixed(1) + suffix
 }
 
 function formatCoins(coins, element) {
+    if (!element) return
     var tiers = ["p", "g", "s"]
     var colors = {
         "p": "#79b9c7",
@@ -822,12 +1149,14 @@ function formatCoins(coins, element) {
 
 function getTaskElement(taskName) {
     var task = gameData.taskData[taskName]
+    if (!task) return null
     var element = document.getElementById(task.id)
     return element
 }
 
 function getItemElement(itemName) {
     var item = gameData.itemData[itemName]
+    if (!item) return null
     var element = document.getElementById(item.id)
     return element
 }
@@ -843,13 +1172,12 @@ function setLightDarkMode() {
 }
 
 function removeSpaces(string) {
-    var string = string.replace(/ /g, "")
+    var string = string.replace(/[ /]/g, "")
     return string
 }
 
 function rebirthOne() {
     gameData.rebirthOneCount += 1
-
     rebirthReset()
 }
 
@@ -858,22 +1186,19 @@ function rebirthTwo() {
     gameData.evil += getEvilGain()
 
     rebirthReset()
-
-    for (taskName in gameData.taskData) {
-        var task = gameData.taskData[taskName]
-        task.maxLevel = 0
-    }    
 }
 
 function rebirthReset() {
     setTab(jobTabButton, "jobs")
 
-    gameData.coins = 0
+    gameData.coins = gameData.merchantsBlessing ? 1000000 : 0
     gameData.days = 365 * 14
     gameData.currentJob = gameData.taskData["Beggar"]
     gameData.currentSkill = gameData.taskData["Concentration"]
     gameData.currentProperty = gameData.itemData["Homeless"]
     gameData.currentMisc = []
+    gameData.autoJob = null
+    gameData.autoSkill = null
 
     for (taskName in gameData.taskData) {
         var task = gameData.taskData[taskName]
@@ -892,7 +1217,7 @@ function rebirthReset() {
 function getLifespan() {
     var immortality = gameData.taskData["Immortality"]
     var superImmortality = gameData.taskData["Super immortality"]
-    var lifespan = baseLifespan * immortality.getEffect() * superImmortality.getEffect()
+    var lifespan = baseLifespan * (immortality ? immortality.getEffect() : 1) * (superImmortality ? superImmortality.getEffect() : 1)
     return lifespan
 }
 
@@ -910,14 +1235,12 @@ function isAlive() {
 }
 
 function assignMethods() {
-
     for (key in gameData.taskData) {
         var task = gameData.taskData[key]
-        if (task.baseData.income) {
+        if (jobBaseData[task.name]) {
             task.baseData = jobBaseData[task.name]
             task = Object.assign(new Job(jobBaseData[task.name]), task)
-            
-        } else {
+        } else if (skillBaseData[task.name]) {
             task.baseData = skillBaseData[task.name]
             task = Object.assign(new Skill(skillBaseData[task.name]), task)
         } 
@@ -926,13 +1249,16 @@ function assignMethods() {
 
     for (key in gameData.itemData) {
         var item = gameData.itemData[key]
-        item.baseData = itemBaseData[item.name]
-        item = Object.assign(new Item(itemBaseData[item.name]), item)
-        gameData.itemData[key] = item
+        if (itemBaseData[item.name]) {
+            item.baseData = itemBaseData[item.name]
+            item = Object.assign(new Item(itemBaseData[item.name]), item)
+            gameData.itemData[key] = item
+        }
     }
 
     for (key in gameData.requirements) {
         var requirement = gameData.requirements[key]
+        if (!requirement) continue
         if (requirement.type == "task") {
             requirement = Object.assign(new TaskRequirement(requirement.elements, requirement.requirements), requirement)
         } else if (requirement.type == "coins") {
@@ -941,20 +1267,43 @@ function assignMethods() {
             requirement = Object.assign(new AgeRequirement(requirement.elements, requirement.requirements), requirement)
         } else if (requirement.type == "evil") {
             requirement = Object.assign(new EvilRequirement(requirement.elements, requirement.requirements), requirement)
+        } else if (requirement.type == "compound") {
+            requirement = Object.assign(new CompoundRequirement(requirement.elements, requirement.requirements), requirement)
         }
 
         var tempRequirement = tempData["requirements"][key]
-        requirement.elements = tempRequirement.elements
-        requirement.requirements = tempRequirement.requirements
+        if (tempRequirement) {
+            requirement.elements = tempRequirement.elements
+            requirement.requirements = tempRequirement.requirements
+        }
         gameData.requirements[key] = requirement
     }
 
-    gameData.currentJob = gameData.taskData[gameData.currentJob.name]
-    gameData.currentSkill = gameData.taskData[gameData.currentSkill.name]
-    gameData.currentProperty = gameData.itemData[gameData.currentProperty.name]
+    if (gameData.currentJob && gameData.taskData[gameData.currentJob.name]) {
+        gameData.currentJob = gameData.taskData[gameData.currentJob.name]
+    } else {
+        gameData.currentJob = gameData.taskData["Beggar"]
+    }
+
+    if (gameData.currentSkill && gameData.taskData[gameData.currentSkill.name]) {
+        gameData.currentSkill = gameData.taskData[gameData.currentSkill.name]
+    } else {
+        gameData.currentSkill = gameData.taskData["Concentration"]
+    }
+
+    if (gameData.currentProperty && gameData.itemData[gameData.currentProperty.name]) {
+        gameData.currentProperty = gameData.itemData[gameData.currentProperty.name]
+    } else {
+        gameData.currentProperty = gameData.itemData["Homeless"]
+    }
+
     var newArray = []
-    for (misc of gameData.currentMisc) {
-        newArray.push(gameData.itemData[misc.name])
+    if (gameData.currentMisc) {
+        for (misc of gameData.currentMisc) {
+            if (misc && gameData.itemData[misc.name]) {
+                newArray.push(gameData.itemData[misc.name])
+            }
+        }
     }
     gameData.currentMisc = newArray
 }
@@ -993,6 +1342,11 @@ function loadGameData() {
         gameData = gameDataSave
     }
 
+    if (gameData.prestigePoints === undefined) gameData.prestigePoints = 0
+    if (gameData.merchantsBlessing === undefined) gameData.merchantsBlessing = false
+    if (gameData.autoJob === undefined) gameData.autoJob = null
+    if (gameData.autoSkill === undefined) gameData.autoSkill = null
+
     assignMethods()
 }
 
@@ -1014,6 +1368,7 @@ function update() {
     increaseDays()
     autoPromote()
     autoLearn()
+    checkAutoAssign()
     doCurrentTask(gameData.currentJob)
     doCurrentTask(gameData.currentSkill)
     applyExpenses()
@@ -1038,7 +1393,7 @@ function exportGameData() {
     importExportBox.value = window.btoa(JSON.stringify(gameData))
 }
 
-//Init
+// Init Game Data and Rows
 
 createAllRows(jobCategories, "jobTable")
 createAllRows(skillCategories, "skillTable")
@@ -1054,7 +1409,10 @@ gameData.currentProperty = gameData.itemData["Homeless"]
 gameData.currentMisc = []
 
 gameData.requirements = {
-    //Other
+    // Categories and tabs
+    "Mythical / Overlord": new TaskRequirement(getElementsByClass("Mythical / Overlord"), [{task: "Merchant", requirement: 50}]),
+    "Mage class": new TaskRequirement(getElementsByClass("Mage"), [{task: "Concentration", requirement: 15}, {task: "Meditation", requirement: 15}]),
+    "Magic skilltree": new TaskRequirement(getElementsByClass("Magic"), [{task: "Concentration", requirement: 15}, {task: "Meditation", requirement: 15}]),
     "The Arcane Association": new TaskRequirement(getElementsByClass("The Arcane Association"), [{task: "Concentration", requirement: 200}, {task: "Meditation", requirement: 200}]),
     "Dark magic": new EvilRequirement(getElementsByClass("Dark magic"), [{requirement: 1}]),
     "Shop": new CoinRequirement([document.getElementById("shopTabButton")], [{requirement: gameData.itemData["Tent"].getExpense() * 50}]),
@@ -1067,7 +1425,7 @@ gameData.requirements = {
     "Automation": new AgeRequirement([document.getElementById("automation")], [{requirement: 20}]),
     "Quick task display": new AgeRequirement([document.getElementById("quickTaskDisplay")], [{requirement: 20}]),
 
-    //Common work
+    // Common work
     "Beggar": new TaskRequirement([getTaskElement("Beggar")], []),
     "Farmer": new TaskRequirement([getTaskElement("Farmer")], [{task: "Beggar", requirement: 10}]),
     "Fisherman": new TaskRequirement([getTaskElement("Fisherman")], [{task: "Farmer", requirement: 10}]),
@@ -1075,7 +1433,12 @@ gameData.requirements = {
     "Blacksmith": new TaskRequirement([getTaskElement("Blacksmith")], [{task: "Strength", requirement: 30}, {task: "Miner", requirement: 10}]),
     "Merchant": new TaskRequirement([getTaskElement("Merchant")], [{task: "Bargaining", requirement: 50}, {task: "Blacksmith", requirement: 10}]),
 
-    //Military 
+    // Mythical / Overlord Jobs
+    "Trade Prince": new CompoundRequirement([getTaskElement("Trade Prince")], [{task: "Merchant", requirement: 50}, {coins: 100000}]),
+    "Shadow Broker": new CompoundRequirement([getTaskElement("Shadow Broker")], [{task: "Merchant", requirement: 100}, {coins: 500000}]),
+    "Midas": new TaskRequirement([getTaskElement("Midas")], [{task: "Trade Prince", requirement: 50}]),
+
+    // Military 
     "Squire": new TaskRequirement([getTaskElement("Squire")], [{task: "Strength", requirement: 5}]),
     "Footman": new TaskRequirement([getTaskElement("Footman")], [{task: "Strength", requirement: 20}, {task: "Squire", requirement: 10}]),
     "Veteran footman": new TaskRequirement([getTaskElement("Veteran footman")], [{task: "Battle tactics", requirement: 40}, {task: "Footman", requirement: 10}]),
@@ -1085,32 +1448,38 @@ gameData.requirements = {
     "Holy knight": new TaskRequirement([getTaskElement("Holy knight")], [{task: "Mana control", requirement: 500}, {task: "Elite knight", requirement: 10}]),
     "Legendary knight": new TaskRequirement([getTaskElement("Legendary knight")], [{task: "Mana control", requirement: 1000}, {task: "Battle tactics", requirement: 1000}, {task: "Holy knight", requirement: 10}]),
 
-    //The Arcane Association
+    // Mage Class Jobs
+    "Apprentice": new TaskRequirement([getTaskElement("Apprentice")], [{task: "Concentration", requirement: 15}, {task: "Meditation", requirement: 15}]),
+    "Wizard": new TaskRequirement([getTaskElement("Wizard")], [{task: "Mana control", requirement: 15}, {task: "Apprentice", requirement: 10}]),
+    "Archmage": new TaskRequirement([getTaskElement("Archmage")], [{task: "Spellcraft", requirement: 20}, {task: "Wizard", requirement: 15}]),
+
+    // The Arcane Association Jobs
     "Student": new TaskRequirement([getTaskElement("Student")], [{task: "Concentration", requirement: 200}, {task: "Meditation", requirement: 200}]),
     "Apprentice mage": new TaskRequirement([getTaskElement("Apprentice mage")], [{task: "Mana control", requirement: 400}, {task: "Student", requirement: 10}]),
     "Mage": new TaskRequirement([getTaskElement("Mage")], [{task: "Mana control", requirement: 700}, {task: "Apprentice mage", requirement: 10}]),
-    "Wizard": new TaskRequirement([getTaskElement("Wizard")], [{task: "Mana control", requirement: 1000}, {task: "Mage", requirement: 10}]),
-    "Master wizard": new TaskRequirement([getTaskElement("Master wizard")], [{task: "Mana control", requirement: 1500}, {task: "Wizard", requirement: 10}]),
+    "Grand wizard": new TaskRequirement([getTaskElement("Grand wizard")], [{task: "Mana control", requirement: 1000}, {task: "Mage", requirement: 10}]),
+    "Master wizard": new TaskRequirement([getTaskElement("Master wizard")], [{task: "Mana control", requirement: 1500}, {task: "Grand wizard", requirement: 10}]),
     "Chairman": new TaskRequirement([getTaskElement("Chairman")], [{task: "Mana control", requirement: 2000}, {task: "Master wizard", requirement: 10}]),
 
-    //Fundamentals
+    // Fundamentals
     "Concentration": new TaskRequirement([getTaskElement("Concentration")], []),
     "Productivity": new TaskRequirement([getTaskElement("Productivity")], [{task: "Concentration", requirement: 5}]),
     "Bargaining": new TaskRequirement([getTaskElement("Bargaining")], [{task: "Concentration", requirement: 20}]),
     "Meditation": new TaskRequirement([getTaskElement("Meditation")], [{task: "Concentration", requirement: 30}, {task: "Productivity", requirement: 20}]),
 
-    //Combat
+    // Combat
     "Strength": new TaskRequirement([getTaskElement("Strength")], []),
     "Battle tactics": new TaskRequirement([getTaskElement("Battle tactics")], [{task: "Concentration", requirement: 20}]),
     "Muscle memory": new TaskRequirement([getTaskElement("Muscle memory")], [{task: "Concentration", requirement: 30}, {task: "Strength", requirement: 30}]),
 
-    //Magic
-    "Mana control": new TaskRequirement([getTaskElement("Mana control")], [{task: "Concentration", requirement: 200}, {task: "Meditation", requirement: 200}]),
-    "Immortality": new TaskRequirement([getTaskElement("Immortality")], [{task: "Apprentice mage", requirement: 10}]),
-    "Time warping": new TaskRequirement([getTaskElement("Time warping")], [{task: "Mage", requirement: 10}]),
-    "Super immortality": new TaskRequirement([getTaskElement("Super immortality")], [{task: "Chairman", requirement: 1000}]),
+    // Magic Skills
+    "Mana control": new TaskRequirement([getTaskElement("Mana control")], [{task: "Concentration", requirement: 15}, {task: "Meditation", requirement: 15}]),
+    "Spellcraft": new TaskRequirement([getTaskElement("Spellcraft")], [{task: "Mana control", requirement: 10}]),
+    "Immortality": new TaskRequirement([getTaskElement("Immortality")], [{task: "Apprentice", requirement: 10}]),
+    "Time warping": new TaskRequirement([getTaskElement("Time warping")], [{task: "Wizard", requirement: 10}]),
+    "Super immortality": new TaskRequirement([getTaskElement("Super immortality")], [{task: "Archmage", requirement: 25}]),
 
-    //Dark magic
+    // Dark magic
     "Dark influence": new EvilRequirement([getTaskElement("Dark influence")], [{requirement: 1}]),
     "Evil control": new EvilRequirement([getTaskElement("Evil control")], [{requirement: 1}]),
     "Intimidation": new EvilRequirement([getTaskElement("Intimidation")], [{requirement: 1}]),
@@ -1118,7 +1487,7 @@ gameData.requirements = {
     "Blood meditation": new EvilRequirement([getTaskElement("Blood meditation")], [{requirement: 75}]),
     "Demon's wealth": new EvilRequirement([getTaskElement("Demon's wealth")], [{requirement: 500}]),
 
-    //Properties
+    // Properties
     "Homeless": new CoinRequirement([getItemElement("Homeless")], [{requirement: 0}]),
     "Tent": new CoinRequirement([getItemElement("Tent")], [{requirement: 0}]),
     "Wooden hut": new CoinRequirement([getItemElement("Wooden hut")], [{requirement: gameData.itemData["Wooden hut"].getExpense() * 100}]),
@@ -1128,7 +1497,7 @@ gameData.requirements = {
     "Small palace": new CoinRequirement([getItemElement("Small palace")], [{requirement: gameData.itemData["Small palace"].getExpense() * 100}]),
     "Grand palace": new CoinRequirement([getItemElement("Grand palace")], [{requirement: gameData.itemData["Grand palace"].getExpense() * 100}]),
 
-    //Misc
+    // Misc
     "Book": new CoinRequirement([getItemElement("Book")], [{requirement: 0}]),
     "Dumbbells": new CoinRequirement([getItemElement("Dumbbells")], [{requirement: gameData.itemData["Dumbbells"].getExpense() * 100}]),
     "Personal squire": new CoinRequirement([getItemElement("Personal squire")], [{requirement: gameData.itemData["Personal squire"].getExpense() * 100}]),

@@ -164,3 +164,25 @@ class EvilRequirement extends Requirement {
         return gameData.evil >= requirement.requirement
     }    
 }
+
+
+class CompoundRequirement extends Requirement {
+    constructor(elements, requirements) {
+        super(elements, requirements)
+        this.type = "compound"
+    }
+
+    getCondition(requirement) {
+        if (requirement.task) {
+            var task = gameData.taskData[requirement.task]
+            return task && task.level >= requirement.requirement
+        }
+        if (requirement.coins !== undefined) {
+            return gameData.coins >= requirement.coins
+        }
+        if (requirement.age !== undefined) {
+            return daysToYears(gameData.days) >= requirement.age
+        }
+        return true
+    }
+}

@@ -1,296 +1,373 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="css/styles.css">
     <link rel="stylesheet" type="text/css" href="css/dark.css">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"> 
-    <title>Progress Knight</title>
+    <title>Progress Knight - Turbo Mod</title>
 </head>
 <body id="body" class="dark">
-    <div class="w3-margin"> 
-        <h1>Progress Knight</h1>
-        <div style="width: 1220px; height: 600px"> 
-            <div class="panel w3-padding" style="width: 300px; height: auto; float: left">
-                <span id="deathText">
-                    <div style="font-size: large; color: red">Age has caught up to you</div>
-                    <div class="sidebar-element" style="color: gray">Your age has met your lifespan, use the amulet to rebirth before you pass away</div>
-                </span>
+    <div class="app-wrapper"> 
+        <header class="app-header">
+            <div class="app-title-group">
+                <h1 class="app-title">⚔️ Progress Knight</h1>
+                <span class="mod-badge">⚡ Turbo Mod (5x Speed • Mage Class • Prestige)</span>
+            </div>
+        </header>
 
-                <div class="" style="font-size: large">Age <span id="ageDisplay">14</span> Day <span id="dayDisplay">0</span></div>
-                <div class="sidebar-element" style="color: gray">Lifespan: <span id="lifespanDisplay">70</span> years</div>
-                
-                <button id="pauseButton" class="w3-button button sidebar-element" onClick="setPause()">Pause</button>
-
-                <span id="automation" class="inline" style="margin-left: 8px">
-                    <span>
-                        <div class="inline">Auto-promote</div>
-                        <input type="checkbox" class="inline" id="autoPromote">
+        <div class="app-layout-grid"> 
+            <!-- Left Sidebar -->
+            <aside class="sidebar-container">
+                <!-- Player Status Card -->
+                <div class="sidebar-card">
+                    <span id="deathText" class="hidden">
+                        <div style="font-size: 14px; font-weight: 700; color: #f87171;">⚠️ Age caught up to you!</div>
+                        <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">Lifespan reached. Use Amulet or Prestige to be reborn.</div>
                     </span>
-                    </br>
-                    <span>
-                        <div class="inline">Auto-learn</div>
-                        <input type="checkbox" class="inline sidebar-element" id="autoLearn">
-                    </span>
-                </span>
 
-                <div style="font-size: large" id="coinDisplay">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
+                    <div class="age-banner">
+                        <span class="age-text">Age <span id="ageDisplay">14</span></span>
+                        <span class="day-badge">Day <span id="dayDisplay">0</span></span>
+                    </div>
+                    <div class="lifespan-info">
+                        <span>⏳ Lifespan:</span>
+                        <span id="lifespanDisplay" style="color: #cbd5e1; font-weight: 600;">70</span>
+                        <span>years</span>
+                    </div>
+                    
+                    <button id="pauseButton" class="pause-btn" onClick="setPause()">⏸ Pause</button>
+
+                    <div id="automation" class="hidden" style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-subtle); font-size: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label for="autoPromote" style="color: var(--text-secondary); cursor: pointer;">Auto-promote</label>
+                            <input type="checkbox" id="autoPromote">
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <label for="autoLearn" style="color: var(--text-secondary); cursor: pointer;">Auto-learn</label>
+                            <input type="checkbox" id="autoLearn">
+                        </div>
+                    </div>
                 </div>
-                <div style="color: gray">Balance (in coins)</div>
 
-                <ul class="sidebar-element" style="padding-left: 20px;">
-                    <li><span style="color: rgb(9, 160, 230)">Net/day: </span ><b id="signDisplay"></b><span id="netDisplay">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </span></li>
-                    <li><span style="color: green">Income/day: </span><span id="incomeDisplay">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </span></li>
-                    <li><span style="color: red">Expense/day: </span><span id="expenseDisplay">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </span></li>
-                </ul>
-
-                <span id="quickTaskDisplay">
-                    <div style="width: 230px" class="small-margin inline job progress-bar progressBar">
-                        <div class="progress-fill progressFill" style="background-color:rgb(225, 165, 0)"></div>
-                        <div class="progress-text name">Task</div>
+                <!-- Speed Multiplier Toolbar -->
+                <div class="sidebar-card">
+                    <div class="section-label">Game Speed Multiplier</div>
+                    <div class="speed-control-container">
+                        <button class="speed-btn" data-speed="1" onClick="setGameSpeedMultiplier(1)">1x</button>
+                        <button class="speed-btn" data-speed="2" onClick="setGameSpeedMultiplier(2)">2x</button>
+                        <button class="speed-btn active" data-speed="5" onClick="setGameSpeedMultiplier(5)">5x</button>
+                        <button class="speed-btn" data-speed="10" onClick="setGameSpeedMultiplier(10)">10x</button>
+                        <button class="speed-btn" data-speed="20" onClick="setGameSpeedMultiplier(20)">20x</button>
                     </div>
-                    <div class="sidebar-element" style="color: gray">Current job</div>
+                </div>
 
-                    <div style="width: 230px" class="small-margin skill progress-bar progressBar">
-                        <div class="progress-fill progressFill" style="background-color:rgb(225, 165, 0)"></div>
-                        <div class="progress-text name">Task</div>              
-                    </div>
-                    <div class="sidebar-element" style="color: gray">Current skill</div>
-                </span>
-
-                <div style="font-size: large"><span style="color: rgb(15, 105, 207)">Happiness: </span><span id="happinessDisplay"></span></div>
-                <div style="color: gray" class="sidebar-element">Affects all xp gain</div>
-
-                <span id="evilInfo">
-                    <div style="font-size: large"><span style="color: rgb(200, 0, 0)">Evil: </span><span id="evilDisplay"></span></div>
-                    <div style="color: gray" class="sidebar-element">Affects dark magic xp gain</div>
-                </span>
-
-                <!--
-                <span id="scheduling">
-                    <div style="font-size: large">Scheduling</div>
-                    <div style="color: gray" class="sidebar-element">Schedule time to jobs/skills</div>
-                    <span style="height: 30px"> 
-                        <p style="width: 5px">Jobs</br>(32%)</p>
-                        <input id="schedulingSlider" class="slider" type="range" min="0" max="100" value="0">
-                        <p style="width: 5px">Skills</br>(68%)</p>
-                    </span>
-                </span>
-                -->
-
-                <span id="timeWarping">
-                    <div style="font-size: large"><span style="color: rgb(204, 34, 219)">Time warping: </span><span id="timeWarpingDisplay"></span></div>
-                    <div style="color: gray">Affects game speed</div>
-                    <button id="timeWarpingButton" class="w3-button button sidebar-element" style="margin-top: 5px; width:150px" onClick="setTimeWarping()">Enable warp</button>
-                </span>
-            </div>
-
-            <div class="panel w3-margin-left" style="width: 900px; height: 40px; float: left">
-                <div class="w3-button w3-bar-item tabButton" id="jobTabButton" onClick="setTab(this, 'jobs')">Jobs</div>
-                <div class="w3-button w3-bar-item tabButton" onClick="setTab(this, 'skills')">Skills</div>
-                <div class="w3-button w3-bar-item tabButton" id="shopTabButton" onClick="setTab(this, 'shop')">Shop</div>
-                <div class="w3-button w3-bar-item tabButton" id="rebirthTabButton" onClick="setTab(this, 'rebirth')">Amulet</div>
-                <div class="w3-button w3-bar-item tabButton" onClick="setTab(this, 'settings')" style="float: right">Settings</div>
-            </div>
-
-            <div class="panel w3-margin-left w3-margin-top w3-padding" style="width: 900px; height: auto; float: left">
-                <template class="headerRowTaskTemplate">
-                    <tr>
-                        <th class="category" style="width: 250px">Job</th>
-                        <th>Level</th>
-                        <th class="valueType">Value type</th>
-                        <th>Xp/day</th>
-                        <th>Xp left</th>
-                        <th class="maxLevel">Max level</th>
-                        <th class="skipSkill">Skip</th>
-                    </tr>
-                </template>
-
-                <template class="headerRowItemTemplate">
-                    <tr>
-                        <th class="category" style="width: 250px">Item</th>
-                        <th style="width: 100px">Active</th>
-                        <th style="width: 250px">Effect</th>
-                        <th>Expense/day</th>
-                    </tr>
-                </template>
-
-                <template class="rowTaskTemplate">
-                    <tr>
-                        <td>
-                            <div class="progress-bar progressBar tooltip">
-                                <div class="progress-fill progressFill"></div>
-                                <div class="progress-text name">Task</div>
-                                <span class="tooltipText"></span>
-                            </div>
-                        </td>
-                        <td class="level">Level</td>
-                        <td class="value">
-                            <div class="effect"></div>
-                            <div class="income">
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                            </div>
-                        </td>
-                        <td class="xpGain">Xp/day</td>
-                        <td class="xpLeft">Xp left</td>
-                        <td class="maxLevel">Max level</td>
-                        <td class="skipSkill">
-                            <input class="checkbox" type="checkbox"></input>
-                        </td>
-                    </tr>
-                </template>
-
-                <template class="rowItemTemplate">
-                    <tr>
-                        <td>
-                            
-                            <button class="button item-button tooltip">
-                                <span class="name"></span>
-                                <span class="tooltipText">tooltip</span>
-                            </button>
-                            
-                        </td>
-                        <td>
-                            <div class="w3-border w3-circle" style="width: 40px; height: 40px; padding: 7px">
-                                <div class="active w3-circle" style="width: 24px; height: 24px;"></div>
-                            </div>
-                        </td>
-                        <td class="effect"></td>
-                        <td class="expense">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </td>
-                    </tr>
-                </template>
-
-                <template class="requiredRowTemplate">
-                    <td class="w3-text-gray" style="padding-left: 16px" colspan=5>
-                        Required: 
-                        <span class="value" colspan=5>
-                            <span class="levels"></span>
-                            <span class="coins">
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                                <span></span>
+                <!-- Prestige System Box -->
+                <div id="prestigeSection" class="prestige-card" style="width: 100%;">
+                    <div class="prestige-header">
+                        <div class="prestige-title tooltip">
+                            <span>✦ Prestige Points</span>
+                            <span class="tooltipText">
+                                <b>✦ Prestige System:</b><br>
+                                Available at <b>Age 70+</b>. Rebirths with permanent <b>Prestige Points</b>.<br><br>
+                                Each point permanently grants a <b>+10% boost</b> to ALL XP gained and Money earned across all future lives!
                             </span>
-                            <span style="color: rgb(200, 0, 0)" class="evil"></span>
-                        </span>
-                    </td> 
-                </template>
+                        </div>
+                        <div class="prestige-count" id="prestigePointsDisplay">0</div>
+                    </div>
+                    <div class="prestige-multiplier">
+                        Multiplier: <span id="prestigeMultiplierDisplay" style="color: #34d399; font-weight: 700;">+0% (x1.00)</span>
+                    </div>
+                    <button id="prestigeButton" class="prestige-btn" onClick="prestige()" style="display: none;">
+                        ⚡ Prestige Now (+<span id="prestigeGainDisplay">1</span> Pts)
+                    </button>
 
-                <div class="tab" id="jobs">
-                    <table id="jobTable" class="w3-table w3-bordered">
-                    </table>
+                    <!-- Merchant's Blessing Upgrade -->
+                    <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(245, 158, 11, 0.4);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 12px; font-weight: 700; color: #ffd166;">Merchant's Blessing</span>
+                            <button id="merchantsBlessingBtn" class="pause-btn" style="width: auto; padding: 4px 10px; font-size: 11px;" onClick="buyMerchantsBlessing()">Buy (5 Pts)</button>
+                        </div>
+                        <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Start every life with 100 Gold (1,000,000c)!</div>
+                    </div>
                 </div>
 
-                <div class="tab" id="skills">
-                    <table id="skillTable" class="w3-table w3-bordered">
-                    </table>
-                </div>
+                <!-- Treasury / Economy Card -->
+                <div class="sidebar-card">
+                    <div class="section-label">Treasury</div>
+                    <div class="coin-balance-display" id="coinDisplay">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
 
-                <div class="tab" id="shop">
-                    <table id="itemTable" class="w3-table w3-bordered">
-                    </table>
-                </div>
-
-                <div class="tab" id="rebirth">
-                    <ul>
-                        <li style="margin: 8px;">
-                            You stumble across a strange looking amulet on your 25th birthday. It does not look like
-                            it has any worth on the market given that it's made from cheap-looking copper. However, you
-                            feel a weird urge to keep the amulet, so you slip it into your pocket for safekeeping.
+                    <ul class="economy-stat-list">
+                        <li class="economy-stat-row">
+                            <span class="economy-stat-label">Net / day</span>
+                            <span class="economy-stat-value" style="color: #38bdf8;">
+                                <b id="signDisplay"></b>
+                                <span id="netDisplay">
+                                    <span></span><span></span><span></span><span></span>
+                                </span>
+                            </span>
                         </li>
-                        <li style="margin: 8px;" id="rebirthNote1">
-                            On your 45th birthday, you feel the amulet shiver uncontrollably in your pocket. You take it
-                            out and the constant shivering suddenly stops. More to your bizarre surprise, you notice
-                            a strange etching on the centre of the amulet.
+                        <li class="economy-stat-row">
+                            <span class="economy-stat-label">Income / day</span>
+                            <span class="economy-stat-value" style="color: #34d399;" id="incomeDisplay">
+                                <span></span><span></span><span></span><span></span>
+                            </span>
                         </li>
-                        <li style="margin: 8px;" id="rebirthNote2">
-                            <div style="margin-bottom: 8px">
-                                On your 65th birthday, you once again encounter the strange, unexplained shivering from your
-                                amulet. But this time, a living eyeball emerges from the centre. Although terribly frightened,
-                                you realise you do not have many years to live left anyway so you consider touching the eye
-                                to see what happens.
-                            </div>
-                            <i style="color: grey">
-                                By touching the eyeball, you will be reborn and have to restart life again, losing all your levels and coins.
-                                However, you will gain <b>xp multipliers</b> for your jobs and skills equivalent to: <b>1 + the max level of the skill or job / 10.</b>
-                                This means you will learn everything again much more quickly than you did in your previous life. <span style="color: rgb(200, 0, 0)">
-                                Something tells you that the amulet might transform even further after living for <b>2 whole centuries</b>...</span>
-                            </i>
-                            </br>
-                            <button class="w3-button button" style="margin-bottom: 8px; margin-top: 8px" onClick="rebirthOne()">Touch the eye</button>
-                            </br>
-                        </li>
-                        <li style="margin: 8px;" id="rebirthNote3">
-                            <div style="margin-bottom: 8px;">
-                                Your gut instinct was right. The moment you hit the grand age of 200, you hear an ominous hum coming from the amulet.
-                                A mouth emerges from its surface and begins to cackle, and proceeds to say: "So you've made it this far... Are you ready to embrace evil?"
-                            </div>
-                            <i style="color: rgb(200, 0, 0)">
-                                If you decide to embrace evil, all of your levels, coins and even max levels will be reset.
-                                You will be reborn as a fresh slate. However, you will unlock a new line of skills and gain
-                                <b><span id="evilGainDisplay"></span> evil</b>, which will heavily impact your future lives.
-                            </i>
-                            </br>
-                                <button class="w3-button button" style="margin-bottom: 8px; margin-top: 8px" onClick="rebirthTwo()">Embrace evil</button>
-                            </br>
+                        <li class="economy-stat-row">
+                            <span class="economy-stat-label">Expense / day</span>
+                            <span class="economy-stat-value" style="color: #f87171;" id="expenseDisplay">
+                                <span></span><span></span><span></span><span></span>
+                            </span>
                         </li>
                     </ul>
                 </div>
 
-                <div class="tab" id="settings">
-                    <ul>
-                        <li>
-                            <h2>Import/export save</h2>
-                            <button class="w3-button button" onClick="importGameData()">Import</button>
-                            <button class="w3-button button" onClick="exportGameData()">Export</button>
-                            <form style="margin-top: 16px"> 
-                                <input id="importExportBox" type="text" style="width:300px; height:30px"></input>
-                            </form>
-                        </li>
-                        <li>
-                            <h2>Toggle light/dark mode</h2>
-                            <button class="w3-button button" onClick="setLightDarkMode()">Toggle</button>
-                        </li>
-                        <li>
-                            <h2>Join the discord community!</h2>
-                            <a href="https://discord.gg/fTRS4pHGka" target="_blank">
-                                <img src="https://cdn.icon-icons.com/icons2/2108/PNG/512/discord_icon_130958.png" width="100" height="100"></img>
-                            </a>
-                        </li>
-                        <li>
-                            <h2>Hard reset game</h2>
-                            <button class="w3-button button w3-red" onClick="resetGameData()">Reset</button>
-                        </li>
-                    </ul>
+                <!-- Current Active Tasks -->
+                <div id="quickTaskDisplay" class="sidebar-card hidden">
+                    <div class="section-label">Active Focus</div>
+                    <div style="margin-bottom: 8px;">
+                        <div class="job progress-bar progressBar" style="width: 100%;">
+                            <div class="progress-fill progressFill"></div>
+                            <div class="progress-text name">Task</div>
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Current Job</div>
+                    </div>
+
+                    <div>
+                        <div class="skill progress-bar progressBar" style="width: 100%;">
+                            <div class="progress-fill progressFill"></div>
+                            <div class="progress-text name">Task</div>              
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Current Skill</div>
+                    </div>
                 </div>
-            </div>
+
+                <!-- Modifiers Card -->
+                <div class="sidebar-card">
+                    <div class="modifiers-grid">
+                        <div class="modifier-box">
+                            <div class="modifier-label">Happiness</div>
+                            <div class="modifier-val" style="color: #60a5fa;" id="happinessDisplay">1.0</div>
+                        </div>
+
+                        <div class="modifier-box" id="evilInfo">
+                            <div class="modifier-label">Evil</div>
+                            <div class="modifier-val" style="color: #f43f5e;" id="evilDisplay">0.0</div>
+                        </div>
+                    </div>
+
+                    <div id="timeWarping" class="hidden" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-subtle);">
+                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                            <span class="modifier-label">Time Warping</span>
+                            <span style="font-size: 13px; font-weight: 700; color: #c084fc;" id="timeWarpingDisplay">x1.00</span>
+                        </div>
+                        <button id="timeWarpingButton" class="pause-btn" style="margin-top: 6px; padding: 6px;" onClick="setTimeWarping()">Enable Warp</button>
+                    </div>
+                </div>
+
+                <!-- Demon Hierarchy Card -->
+                <div id="demonHierarchySection" class="sidebar-card" style="border: 1px solid #dc2626; background: linear-gradient(135deg, rgba(220, 38, 38, 0.12), rgba(153, 27, 27, 0.22)); display: none; width: 100%;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #f87171; letter-spacing: 0.5px;">👹 Demonic Rank</span>
+                        <span id="demonTierBadge" style="font-size: 10px; font-weight: 700; background: #7f1d1d; color: #fecaca; padding: 2px 7px; border-radius: 4px; border: 1px solid #b91c1c;">Tier 1</span>
+                    </div>
+                    <div id="demonRankTitle" style="font-size: 14px; font-weight: 800; color: #ffedd5; margin-bottom: 2px;">Imp (Chhote Shaitan)</div>
+                    <div id="demonRankDesc" style="font-size: 11px; color: #cbd5e1; line-height: 1.4;">Chote, udte hue demons jo chaos failate hain.</div>
+                    <div style="margin-top: 8px; padding-top: 6px; border-top: 1px dashed rgba(220, 38, 38, 0.4); display: flex; justify-content: space-between; align-items: center; font-size: 11px;">
+                        <span style="color: #fca5a5; font-weight: 600;">Hierarchy Power:</span>
+                        <span id="demonRankBonus" style="color: #4ade80; font-weight: 700;">+5% All XP & Evil</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="main-content-panel">
+                <nav class="tabs-navbar">
+                    <button class="tabButton" id="jobTabButton" onClick="setTab(this, 'jobs')">⚔️ Jobs</button>
+                    <button class="tabButton" onClick="setTab(this, 'skills')">📜 Skills</button>
+                    <button class="tabButton" id="shopTabButton" onClick="setTab(this, 'shop')">🛒 Shop</button>
+                    <button class="tabButton" id="rebirthTabButton" onClick="setTab(this, 'rebirth')">🧿 Amulet</button>
+                    <button class="tabButton tab-settings-push" onClick="setTab(this, 'settings')">⚙️ Settings</button>
+                </nav>
+
+                <div class="content-card">
+                    <template class="headerRowTaskTemplate">
+                        <tr>
+                            <th class="category" style="width: 220px">Job</th>
+                            <th>Level</th>
+                            <th class="valueType">Value type</th>
+                            <th>Xp/day</th>
+                            <th>Xp left</th>
+                            <th class="maxLevel">Max level</th>
+                            <th class="autoTaskHeader" style="width: 90px; text-align: center;">Auto</th>
+                            <th class="skipSkill">Skip</th>
+                        </tr>
+                    </template>
+
+                    <template class="headerRowItemTemplate">
+                        <tr>
+                            <th class="category" style="width: 220px">Item</th>
+                            <th style="width: 100px; text-align: center;">Active</th>
+                            <th style="width: 250px">Effect</th>
+                            <th>Expense/day</th>
+                        </tr>
+                    </template>
+
+                    <template class="rowTaskTemplate">
+                        <tr>
+                            <td>
+                                <div class="progress-bar progressBar tooltip">
+                                    <div class="progress-fill progressFill"></div>
+                                    <div class="progress-text name">Task</div>
+                                    <span class="tooltipText"></span>
+                                </div>
+                            </td>
+                            <td class="level" style="font-weight: 700;">Level</td>
+                            <td class="value">
+                                <div class="effect"></div>
+                                <div class="income">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                            </td>
+                            <td class="xpGain" style="color: #60a5fa;">Xp/day</td>
+                            <td class="xpLeft" style="color: var(--text-muted);">Xp left</td>
+                            <td class="maxLevel" style="color: #fbbf24;">Max level</td>
+                            <td class="autoTask" style="text-align: center;">
+                                <button class="autoButton button" title="Toggle Auto-assign">Auto: OFF</button>
+                            </td>
+                            <td class="skipSkill">
+                                <input class="checkbox" type="checkbox"></input>
+                            </td>
+                        </tr>
+                    </template>
+
+                    <template class="rowItemTemplate">
+                        <tr>
+                            <td>
+                                <button class="button item-button tooltip">
+                                    <span class="name"></span>
+                                    <span class="tooltipText">tooltip</span>
+                                </button>
+                            </td>
+                            <td style="text-align: center;">
+                                <div style="width: 32px; height: 32px; padding: 4px; border: 1px solid var(--border-card); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+                                    <div class="active" style="width: 20px; height: 20px; border-radius: 50%;"></div>
+                                </div>
+                            </td>
+                            <td class="effect" style="color: #38bdf8;"></td>
+                            <td class="expense">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </td>
+                        </tr>
+                    </template>
+
+                    <template class="requiredRowTemplate">
+                        <td class="w3-text-gray" colspan="8">
+                            <span class="value">
+                                🔒 Required: 
+                                <span class="levels" style="color: #f1f5f9;"></span>
+                                <span class="coins">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </span>
+                                <span style="color: #f87171" class="evil"></span>
+                            </span>
+                        </td> 
+                    </template>
+
+                    <div class="tab" id="jobs">
+                        <table id="jobTable" class="w3-table">
+                        </table>
+                    </div>
+
+                    <div class="tab" id="skills">
+                        <table id="skillTable" class="w3-table">
+                        </table>
+                    </div>
+
+                    <div class="tab" id="shop">
+                        <table id="itemTable" class="w3-table">
+                        </table>
+                    </div>
+
+                    <div class="tab" id="rebirth" style="line-height: 1.6;">
+                        <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 12px;">
+                            <li class="sidebar-card">
+                                You stumble across a strange looking amulet on your 25th birthday. It does not look like
+                                it has any worth on the market given that it's made from cheap-looking copper. However, you
+                                feel a weird urge to keep the amulet, so you slip it into your pocket for safekeeping.
+                            </li>
+                            <li class="sidebar-card" id="rebirthNote1">
+                                On your 45th birthday, you feel the amulet shiver uncontrollably in your pocket. You take it
+                                out and the constant shivering suddenly stops. More to your bizarre surprise, you notice
+                                a strange etching on the centre of the amulet.
+                            </li>
+                            <li class="sidebar-card" id="rebirthNote2">
+                                <div style="margin-bottom: 8px">
+                                    On your 65th birthday, you once again encounter the strange, unexplained shivering from your
+                                    amulet. But this time, a living eyeball emerges from the centre. Although terribly frightened,
+                                    you realise you do not have many years to live left anyway so you consider touching the eye
+                                    to see what happens.
+                                </div>
+                                <div style="color: #94a3b8; font-size: 13px;">
+                                    By touching the eyeball, you will be reborn and have to restart life again, losing all your levels and coins.
+                                    However, you will gain <b>xp multipliers</b> for your jobs and skills equivalent to: <b>1 + the max level of the skill or job / 10.</b>
+                                    This means you will learn everything again much more quickly than you did in your previous life. <span style="color: #f87171">
+                                    Something tells you that the amulet might transform even further after living for <b>2 whole centuries</b>...</span>
+                                </div>
+                                <button class="pause-btn" style="width: auto; margin-top: 12px; background: #3b82f6 !important;" onClick="rebirthOne()">Touch the Eye</button>
+                            </li>
+                            <li class="sidebar-card" id="rebirthNote3">
+                                <div style="margin-bottom: 8px;">
+                                    Your gut instinct was right. The moment you hit the grand age of 200, you hear an ominous hum coming from the amulet.
+                                    A mouth emerges from its surface and begins to cackle, and proceeds to say: "So you've made it this far... Are you ready to embrace evil?"
+                                </div>
+                                <div style="color: #f87171; font-size: 13px;">
+                                    If you decide to embrace evil, all of your levels, coins and even max levels will be reset.
+                                    You will be reborn as a fresh slate. However, you will unlock a new line of skills and gain
+                                    <b><span id="evilGainDisplay"></span> evil</b>, which will heavily impact your future lives.
+                                </div>
+                                <button class="pause-btn" style="width: auto; margin-top: 12px; background: #dc2626 !important;" onClick="rebirthTwo()">Embrace Evil</button>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="tab" id="settings">
+                        <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 16px;">
+                            <li class="sidebar-card">
+                                <h3 style="margin-top: 0; font-size: 16px;">Import / Export Save</h3>
+                                <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                                    <button class="pause-btn" style="width: auto;" onClick="importGameData()">Import</button>
+                                    <button class="pause-btn" style="width: auto;" onClick="exportGameData()">Export</button>
+                                </div>
+                                <input id="importExportBox" type="text" style="width: 100%; max-width: 400px; height: 36px; background: var(--bg-surface-elevated); border: 1px solid var(--border-card); color: #fff; padding: 6px 12px; border-radius: 6px;"></input>
+                            </li>
+                            <li class="sidebar-card">
+                                <h3 style="margin-top: 0; font-size: 16px;">Toggle Light / Dark Mode</h3>
+                                <button class="pause-btn" style="width: auto;" onClick="setLightDarkMode()">Toggle Theme</button>
+                            </li>
+                            <li class="sidebar-card">
+                                <h3 style="margin-top: 0; font-size: 16px; color: #f87171;">Hard Reset</h3>
+                                <p style="font-size: 13px; color: var(--text-muted);">Permanently wipes all progress, saves, and resets the game state.</p>
+                                <button class="pause-btn" style="width: auto; background: #991b1b !important; border-color: #ef4444 !important;" onClick="resetGameData()">Hard Reset Game</button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </main>
         </div>
     </div>
 </body>
