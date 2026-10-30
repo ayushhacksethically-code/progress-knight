@@ -1041,6 +1041,22 @@ function updateText() {
                 if (nextReq) nextReq.textContent = "Lvl " + currentLvl
                 if (pBar) pBar.style.width = "100%"
             }
+
+            // Quick Train Button Status
+            var trainBtn = document.getElementById("demonTrainButton")
+            if (trainBtn) {
+                var dt = gameData.taskData["Demon training"]
+                var dtLvl = dt ? dt.level : 0
+                if (gameData.currentSkill && gameData.currentSkill.name === "Demon training") {
+                    trainBtn.textContent = "⚡ Training in Progress (Lvl " + dtLvl + ")"
+                    trainBtn.style.background = "#15803d"
+                    trainBtn.style.borderColor = "#22c55e"
+                } else {
+                    trainBtn.textContent = "🔥 Train Demon Training (Lvl " + dtLvl + ")"
+                    trainBtn.style.background = "linear-gradient(135deg, #b91c1c, #991b1b)"
+                    trainBtn.style.borderColor = "#ef4444"
+                }
+            }
         } else {
             demonCard.style.display = "none"
         }
@@ -1581,7 +1597,7 @@ gameData.requirements = {
     "Dark influence": new EvilRequirement([getTaskElement("Dark influence")], [{requirement: 1}]),
     "Evil control": new EvilRequirement([getTaskElement("Evil control")], [{requirement: 1}]),
     "Intimidation": new EvilRequirement([getTaskElement("Intimidation")], [{requirement: 1}]),
-    "Demon training": new EvilRequirement([getTaskElement("Demon training")], [{requirement: 25}]),
+    "Demon training": new EvilRequirement([getTaskElement("Demon training")], [{requirement: 1}]),
     "Blood meditation": new EvilRequirement([getTaskElement("Blood meditation")], [{requirement: 75}]),
     "Demon's wealth": new EvilRequirement([getTaskElement("Demon's wealth")], [{requirement: 500}]),
 
