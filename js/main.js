@@ -188,6 +188,31 @@ const modernSkillCategories = {
     "Modern Skills": ["Fitness", "Coding", "Finance", "Hacking"]
 }
 
+const modernItemBaseData = {
+    "Homeless": {name: "Homeless", expense: 0, effect: 1},
+    "Capsule Pod": {name: "Capsule Pod", expense: 20, effect: 1.4},
+    "Shared Studio": {name: "Shared Studio", expense: 120, effect: 2},
+    "Suburban Apartment": {name: "Suburban Apartment", expense: 900, effect: 3.5},
+    "Luxury Condo": {name: "Luxury Condo", expense: 3500, effect: 6},
+    "Cyber Loft": {name: "Cyber Loft", expense: 30000, effect: 12},
+    "Smart Villa": {name: "Smart Villa", expense: 350000, effect: 25},
+    "Sky Penthouse Megatower": {name: "Sky Penthouse Megatower", expense: 6000000, effect: 60},
+
+    "Book": {name: "Book", expense: 10, effect: 1.5, description: "Skill xp"},
+    "Dumbbells": {name: "Dumbbells", expense: 50, effect: 1.5, description: "Strength xp"},
+    "Personal squire": {name: "Personal squire", expense: 200, effect: 2, description: "Job xp"},
+    "Steel longsword": {name: "Steel longsword", expense: 1000, effect: 2, description: "Military xp"},
+    "Butler": {name: "Butler", expense: 7500, effect: 1.5, description: "Happiness"},
+    "Sapphire charm": {name: "Sapphire charm", expense: 50000, effect: 3, description: "Magic xp"},
+    "Study desk": {name: "Study desk", expense: 1000000, effect: 2, description: "Skill xp"},
+    "Library": {name: "Library", expense: 10000000, effect: 1.5, description: "Skill xp"},
+}
+
+const modernItemCategories = {
+    "Properties": ["Homeless", "Capsule Pod", "Shared Studio", "Suburban Apartment", "Luxury Condo", "Cyber Loft", "Smart Villa", "Sky Penthouse Megatower"],
+    "Misc": ["Book", "Dumbbells", "Personal squire", "Steel longsword", "Butler", "Sapphire charm", "Study desk", "Library"]
+}
+
 const modernMobNames = [
     "Glitch Imp",
     "Rogue AI",
@@ -212,22 +237,30 @@ const modernBossNames = [
     "Zero-Day Harbinger"
 ]
 
+function isItemCategory(categoryType) {
+    return categoryType == itemCategories || categoryType == modernItemCategories
+}
+
 function getWorldData() {
     if (gameData && gameData.world === 'modern') {
         return {
             world: 'modern',
             jobBaseData: modernJobBaseData,
             skillBaseData: modernSkillBaseData,
+            itemBaseData: modernItemBaseData,
             jobCategories: modernJobCategories,
-            skillCategories: modernSkillCategories
+            skillCategories: modernSkillCategories,
+            itemCategories: modernItemCategories
         }
     } else {
         return {
             world: 'fantasy',
             jobBaseData: jobBaseData,
             skillBaseData: skillBaseData,
+            itemBaseData: itemBaseData,
             jobCategories: jobCategories,
-            skillCategories: skillCategories
+            skillCategories: skillCategories,
+            itemCategories: itemCategories
         }
     }
 }
@@ -322,6 +355,13 @@ const tooltips = {
     "Coding": "Master programming algorithms and systems architecture to build digital empires.",
     "Finance": "Understand markets and cash flow dynamics to maximize every dollar earned.",
     "Hacking": "Penetrate firewalls, decrypt secure nodes, and dominate cyber space.",
+    "Capsule Pod": "A compact cybernetic sleeping capsule in a high-density pod hotel. Offers a charging port and climate control.",
+    "Shared Studio": "A tiny studio apartment shared with two other gig-workers. At least the microwave and fiber internet work.",
+    "Suburban Apartment": "A cozy, quiet apartment outside the downtown smog with reliable heating and modern home appliances.",
+    "Luxury Condo": "A sleek downtown condominium in a glass high-rise featuring biometric security and smart appliances.",
+    "Cyber Loft": "An expansive open-concept industrial loft equipped with holographic setups, ambient neon, and a server room.",
+    "Smart Villa": "A gated architectural marvel completely managed by an autonomous AI system with a solar grid and robotic security.",
+    "Sky Penthouse Megatower": "The ultra-luxurious apex of a cyber megatower above the clouds, with a private maglev landing pad and panoramic metropolis vistas.",
 
     "Homeless": "Sleep on the uncomfortable, filthy streets while almost freezing to death every night. It cannot get any worse than this.",
     "Tent": "A thin sheet of tattered cloth held up by a couple of feeble, wooden sticks. Horrible living conditions but at least you have a roof over your head.",
@@ -840,7 +880,7 @@ function createRequiredRow(categoryName) {
 function createHeaderRow(templates, categoryType, categoryName) {
     var headerRow = templates.headerRow.content.firstElementChild.cloneNode(true)
     headerRow.getElementsByClassName("category")[0].textContent = categoryName
-    if (categoryType != itemCategories) {
+    if (!isItemCategory(categoryType)) {
         headerRow.getElementsByClassName("valueType")[0].textContent = (categoryType == jobCategories || categoryType == modernJobCategories) ? "Income/day" : "Effect"
     }
 
@@ -859,7 +899,7 @@ function createRow(templates, name, categoryName, categoryType) {
     row.getElementsByClassName("name")[0].textContent = name
     row.getElementsByClassName("tooltipText")[0].textContent = tooltips[name] || ""
     row.id = "row " + name
-    if (categoryType != itemCategories) {
+    if (!isItemCategory(categoryType)) {
         row.getElementsByClassName("progressBar")[0].onclick = function() {setTask(name)}
         var autoBtn = row.getElementsByClassName("autoButton")[0]
         if (autoBtn) {
@@ -877,8 +917,8 @@ function createRow(templates, name, categoryName, categoryType) {
 
 function createAllRows(categoryType, tableId) {
     var templates = {
-        headerRow: document.getElementsByClassName(categoryType == itemCategories ? "headerRowItemTemplate" : "headerRowTaskTemplate")[0],
-        row: document.getElementsByClassName(categoryType == itemCategories ? "rowItemTemplate" : "rowTaskTemplate")[0],
+        headerRow: document.getElementsByClassName(isItemCategory(categoryType) ? "headerRowItemTemplate" : "headerRowTaskTemplate")[0],
+        row: document.getElementsByClassName(isItemCategory(categoryType) ? "rowItemTemplate" : "rowTaskTemplate")[0],
     }
 
     var table = document.getElementById(tableId)
@@ -1043,7 +1083,7 @@ function updateItemRows() {
         var button = row.getElementsByClassName("button")[0]
         button.disabled = gameData.coins < item.getExpense()
         var active = row.getElementsByClassName("active")[0]
-        var color = itemCategories["Properties"].includes(item.name) ? categoryAccentColors["Properties"] : categoryAccentColors["Misc"]
+        var color = (itemCategories["Properties"].includes(item.name) || (modernItemCategories["Properties"] && modernItemCategories["Properties"].includes(item.name))) ? categoryAccentColors["Properties"] : categoryAccentColors["Misc"]
         var isBought = (gameData.currentMisc.includes(item) || item == gameData.currentProperty)
         active.style.backgroundColor = isBought ? color : "transparent"
         active.style.boxShadow = isBought ? "0 0 8px " + color : "none"
@@ -2091,6 +2131,7 @@ function renderWorldTables() {
     var worldData = getWorldData()
     var jobTable = document.getElementById("jobTable")
     var skillTable = document.getElementById("skillTable")
+    var itemTable = document.getElementById("itemTable")
 
     if (jobTable) {
         jobTable.innerHTML = ""
@@ -2100,6 +2141,10 @@ function renderWorldTables() {
         skillTable.innerHTML = ""
         createAllRows(worldData.skillCategories, "skillTable")
     }
+    if (itemTable) {
+        itemTable.innerHTML = ""
+        createAllRows(worldData.itemCategories, "itemTable")
+    }
 }
 
 function initWorldRequirements() {
@@ -2107,6 +2152,8 @@ function initWorldRequirements() {
         var modernReqs = {
             "Corporate & Tech": new TaskRequirement(getElementsByClass("Corporate & Tech"), []),
             "Modern Skills": new TaskRequirement(getElementsByClass("Modern Skills"), []),
+            "Properties": new TaskRequirement(getElementsByClass("Properties"), []),
+            "Misc": new TaskRequirement(getElementsByClass("Misc"), []),
             "Student": new TaskRequirement([getTaskElement("Student")], []),
             "Fast Food Worker": new TaskRequirement([getTaskElement("Fast Food Worker")], [{task: "Student", requirement: 10}]),
             "Office Worker": new TaskRequirement([getTaskElement("Office Worker")], [{task: "Fast Food Worker", requirement: 10}, {task: "Coding", requirement: 5}]),
@@ -2116,7 +2163,27 @@ function initWorldRequirements() {
             "Fitness": new TaskRequirement([getTaskElement("Fitness")], []),
             "Coding": new TaskRequirement([getTaskElement("Coding")], [{task: "Student", requirement: 5}]),
             "Finance": new TaskRequirement([getTaskElement("Finance")], [{task: "Student", requirement: 10}]),
-            "Hacking": new TaskRequirement([getTaskElement("Hacking")], [{task: "Coding", requirement: 25}])
+            "Hacking": new TaskRequirement([getTaskElement("Hacking")], [{task: "Coding", requirement: 25}]),
+
+            // Modern Properties
+            "Homeless": new CoinRequirement([getItemElement("Homeless")], [{requirement: 0}]),
+            "Capsule Pod": new CoinRequirement([getItemElement("Capsule Pod")], [{requirement: 0}]),
+            "Shared Studio": new CoinRequirement([getItemElement("Shared Studio")], [{requirement: (gameData.itemData["Shared Studio"] ? gameData.itemData["Shared Studio"].getExpense() : 120) * 100}]),
+            "Suburban Apartment": new CoinRequirement([getItemElement("Suburban Apartment")], [{requirement: (gameData.itemData["Suburban Apartment"] ? gameData.itemData["Suburban Apartment"].getExpense() : 900) * 100}]),
+            "Luxury Condo": new CoinRequirement([getItemElement("Luxury Condo")], [{requirement: (gameData.itemData["Luxury Condo"] ? gameData.itemData["Luxury Condo"].getExpense() : 3500) * 100}]),
+            "Cyber Loft": new CoinRequirement([getItemElement("Cyber Loft")], [{requirement: (gameData.itemData["Cyber Loft"] ? gameData.itemData["Cyber Loft"].getExpense() : 30000) * 100}]),
+            "Smart Villa": new CoinRequirement([getItemElement("Smart Villa")], [{requirement: (gameData.itemData["Smart Villa"] ? gameData.itemData["Smart Villa"].getExpense() : 350000) * 100}]),
+            "Sky Penthouse Megatower": new CoinRequirement([getItemElement("Sky Penthouse Megatower")], [{requirement: (gameData.itemData["Sky Penthouse Megatower"] ? gameData.itemData["Sky Penthouse Megatower"].getExpense() : 6000000) * 100}]),
+
+            // Misc
+            "Book": new CoinRequirement([getItemElement("Book")], [{requirement: 0}]),
+            "Dumbbells": new CoinRequirement([getItemElement("Dumbbells")], [{requirement: 50 * 100}]),
+            "Personal squire": new CoinRequirement([getItemElement("Personal squire")], [{requirement: 200 * 100}]),
+            "Steel longsword": new CoinRequirement([getItemElement("Steel longsword")], [{requirement: 1000 * 100}]),
+            "Butler": new CoinRequirement([getItemElement("Butler")], [{requirement: 7500 * 100}]),
+            "Sapphire charm": new CoinRequirement([getItemElement("Sapphire charm")], [{requirement: 50000 * 100}]),
+            "Study desk": new CoinRequirement([getItemElement("Study desk")], [{requirement: 1000000 * 100}]),
+            "Library": new CoinRequirement([getItemElement("Library")], [{requirement: 10000000 * 100}]),
         }
         for (var k in modernReqs) {
             gameData.requirements[k] = modernReqs[k]
@@ -2158,6 +2225,7 @@ function setupWorld() {
     if (isModern) {
         createData(gameData.taskData, modernJobBaseData)
         createData(gameData.taskData, modernSkillBaseData)
+        createData(gameData.itemData, modernItemBaseData)
     }
 
     renderWorldTables()
@@ -2222,7 +2290,7 @@ function updateUI() {
     updateItemRows()
     updateRequiredRows(gameData.taskData, worldData.jobCategories)
     updateRequiredRows(gameData.taskData, worldData.skillCategories)
-    updateRequiredRows(gameData.itemData, itemCategories)
+    updateRequiredRows(gameData.itemData, worldData.itemCategories)
     updateHeaderRows(worldData.jobCategories)
     updateHeaderRows(worldData.skillCategories)
     updateQuickTaskDisplay("job")
@@ -2273,6 +2341,7 @@ createData(gameData.taskData, skillBaseData)
 createData(gameData.taskData, modernJobBaseData)
 createData(gameData.taskData, modernSkillBaseData)
 createData(gameData.itemData, itemBaseData) 
+createData(gameData.itemData, modernItemBaseData) 
 
 gameData.currentJob = gameData.taskData["Beggar"]
 gameData.currentSkill = gameData.taskData["Concentration"]
