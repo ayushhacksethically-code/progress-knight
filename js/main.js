@@ -227,53 +227,64 @@ const units = ["", "k", "M", "B", "T", "q", "Q", "Sx", "Sp", "Oc"]
 const jobTabButton = document.getElementById("jobTabButton")
 
 const demonRanks = [
-    // Tier 1: Lesser Spawns (Level 1 - 10)
-    {minLvl: 0, maxLvl: 2, name: "Imp (Chhote Shaitan)", tier: "🟢 Tier 1: Lesser Spawn", desc: "Chote, udte hue demons jo chaos failate hain.", bonus: 1.05},
-    {minLvl: 3, maxLvl: 4, name: "Gremlin", tier: "🟢 Tier 1: Lesser Spawn", desc: "Machines aur magic ko kharab karne wale.", bonus: 1.10},
-    {minLvl: 5, maxLvl: 6, name: "Hellhound (Narki Kutta)", tier: "🟢 Tier 1: Lesser Spawn", desc: "Aag se bane hue kutton jaise shikari.", bonus: 1.15},
-    {minLvl: 7, maxLvl: 8, name: "Fiend", tier: "🟢 Tier 1: Lesser Spawn", desc: "Basic infantry demonic warrior.", bonus: 1.20},
-    {minLvl: 9, maxLvl: 10, name: "Wraith (Pret)", tier: "🟢 Tier 1: Lesser Spawn", desc: "Sirf aatmaon wale demons jo rooh par attack karte hain.", bonus: 1.25},
+    // Tier 1: Lesser Spawns (Lvl 1 - 25)
+    {minLvl: 1, maxLvl: 3, name: "Imp (Chhote Shaitan)", tier: "Tier 1: Lesser Spawn", tierBadge: "Tier 1", tierColor: "#16a34a", desc: "Chote shaitan jo basic chaos aur dark energy absorb karte hain.", bonus: 1.05},
+    {minLvl: 4, maxLvl: 7, name: "Gremlin", tier: "Tier 1: Lesser Spawn", tierBadge: "Tier 1", tierColor: "#16a34a", desc: "Shararti jantu jo machines aur magic ko alter karte hain.", bonus: 1.10},
+    {minLvl: 8, maxLvl: 12, name: "Hellhound (Narki Shikari)", tier: "Tier 1: Lesser Spawn", tierBadge: "Tier 1", tierColor: "#16a34a", desc: "Narak ki aag se bane hue tez shikar karne wale praani.", bonus: 1.15},
+    {minLvl: 13, maxLvl: 18, name: "Fiend (Demonic Soldier)", tier: "Tier 1: Lesser Spawn", tierBadge: "Tier 1", tierColor: "#16a34a", desc: "Demonic fauj ke frontline warriors.", bonus: 1.20},
+    {minLvl: 19, maxLvl: 25, name: "Wraith (Pret)", tier: "Tier 1: Lesser Spawn", tierBadge: "Tier 1", tierColor: "#16a34a", desc: "Sirf aatma aur chhaaya se bane hue dangerous pret.", bonus: 1.28},
 
-    // Tier 2: Mid-Tier Demons (Level 11 - 30)
-    {minLvl: 11, maxLvl: 14, name: "Incubus / Succubus", tier: "🟡 Tier 2: Mid-Tier", desc: "Sapno mein aakar energy aur prana chusne wale.", bonus: 1.35},
-    {minLvl: 15, maxLvl: 18, name: "Oni", tier: "🟡 Tier 2: Mid-Tier", desc: "Giant club wale brutal strong mythological ogres.", bonus: 1.45},
-    {minLvl: 19, maxLvl: 22, name: "Hell Knight", tier: "🟡 Tier 2: Mid-Tier", desc: "Black cursed armor pehne hue heavy damage warriors.", bonus: 1.55},
-    {minLvl: 23, maxLvl: 26, name: "Blood Imp", tier: "🟡 Tier 2: Mid-Tier", desc: "Khoon se bane hue demons jo har hit par heal hote hain.", bonus: 1.65},
-    {minLvl: 27, maxLvl: 30, name: "Nightmare Weaver", tier: "🟡 Tier 2: Mid-Tier", desc: "Darr aur illusions create karke dimag todne wale.", bonus: 1.75},
+    // Tier 2: Mid-Tier Demons (Lvl 26 - 65)
+    {minLvl: 26, maxLvl: 33, name: "Incubus / Succubus", tier: "Tier 2: Mid-Tier", tierBadge: "Tier 2", tierColor: "#eab308", desc: "Prana aur aatma ki urja ko sookhne wale mayawi demons.", bonus: 1.38},
+    {minLvl: 34, maxLvl: 42, name: "Oni (Rākshasa)", tier: "Tier 2: Mid-Tier", tierBadge: "Tier 2", tierColor: "#eab308", desc: "Brutal takat aur horns wale vishal yoddha.", bonus: 1.50},
+    {minLvl: 43, maxLvl: 51, name: "Hell Knight", tier: "Tier 2: Mid-Tier", tierBadge: "Tier 2", tierColor: "#eab308", desc: "Cursed black armor se susajjit narak ke senani.", bonus: 1.65},
+    {minLvl: 52, maxLvl: 65, name: "Nightmare Weaver", tier: "Tier 2: Mid-Tier", tierBadge: "Tier 2", tierColor: "#eab308", desc: "Darr aur bharm paida karke dimag ko qabu karne wale.", bonus: 1.80},
 
-    // Tier 3: High-Tier Demons (Level 31 - 60)
-    {minLvl: 31, maxLvl: 37, name: "Archfiend", tier: "🟠 Tier 3: High-Tier", desc: "Powerful demons jo sins (Pride, Greed, Wrath) ko lead karte hain.", bonus: 1.90},
-    {minLvl: 38, maxLvl: 44, name: "Balrog (Infernal Beast)", tier: "🟠 Tier 3: High-Tier", desc: "Aag ke whip wale, pahadon jitne vishalkay demons.", bonus: 2.10},
-    {minLvl: 45, maxLvl: 52, name: "Shadow Stalker", tier: "🟠 Tier 3: High-Tier", desc: "Andhere mein ghumne wale, one-hit lethal assassins.", bonus: 2.30},
-    {minLvl: 53, maxLvl: 60, name: "Demon Lord", tier: "🟠 Tier 3: High-Tier", desc: "Poori demon armies ke commanding generals.", bonus: 2.50},
+    // Tier 3: High-Tier Demons (Lvl 66 - 120)
+    {minLvl: 66, maxLvl: 78, name: "Archfiend", tier: "Tier 3: High-Tier", tierBadge: "Tier 3", tierColor: "#f97316", desc: "Prachand shakti wale mahabali demonic adhyaksh.", bonus: 2.00},
+    {minLvl: 79, maxLvl: 92, name: "Infernal Balrog", tier: "Tier 3: High-Tier", tierBadge: "Tier 3", tierColor: "#f97316", desc: "Aag ke chaabuk aur jwala se dahekne wale parvat-samaani danav.", bonus: 2.25},
+    {minLvl: 93, maxLvl: 106, name: "Shadow Stalker", tier: "Tier 3: High-Tier", tierBadge: "Tier 3", tierColor: "#f97316", desc: "Andhere mein chalne wale ghatak one-hit assassins.", bonus: 2.50},
+    {minLvl: 107, maxLvl: 120, name: "Demon Commander", tier: "Tier 3: High-Tier", tierBadge: "Tier 3", tierColor: "#f97316", desc: "Hazaron narki sainikon ka netritva karne wale senapati.", bonus: 2.80},
 
-    // Tier 4: Elite & Commander Tier (Level 61 - 100)
-    {minLvl: 61, maxLvl: 70, name: "Demon Duke (Narki Sardar)", tier: "🔴 Tier 4: Elite Commander", desc: "Infernal legions ke high-ranking lord generals.", bonus: 2.80},
-    {minLvl: 71, maxLvl: 80, name: "Abyssal Prince (Patal Rajkumar)", tier: "🔴 Tier 4: Elite Commander", desc: "Hell ke specific regions (Fire, Ice) ke rulers.", bonus: 3.20},
-    {minLvl: 81, maxLvl: 90, name: "Archdemon", tier: "🔴 Tier 4: Elite Commander", desc: "Prachin aur pralaykari powerful demonic entities.", bonus: 3.60},
-    {minLvl: 91, maxLvl: 100, name: "The Seven Sin Incarnates", tier: "🔴 Tier 4: Elite Commander", desc: "Asli Wrath, Lust, Greed ke sakshat demon roop.", bonus: 4.00},
+    // Tier 4: Elite Commander Tier (Lvl 121 - 200)
+    {minLvl: 121, maxLvl: 140, name: "Demon Duke (Narki Sardar)", tier: "Tier 4: Elite Commander", tierBadge: "Tier 4", tierColor: "#ef4444", desc: "Patal lok ke shreshtha kshetron ke mantri aur commander.", bonus: 3.20},
+    {minLvl: 141, maxLvl: 160, name: "Abyssal Prince (Patal Rajkumar)", tier: "Tier 4: Elite Commander", tierBadge: "Tier 4", tierColor: "#ef4444", desc: "Gehre abyss ke rajyapal aur shaktishali raajvanshi.", bonus: 3.70},
+    {minLvl: 161, maxLvl: 180, name: "Archdemon", tier: "Tier 4: Elite Commander", tierBadge: "Tier 4", tierColor: "#ef4444", desc: "Prachin kaal se jeevit pralaykari maha-rakshas.", bonus: 4.30},
+    {minLvl: 181, maxLvl: 200, name: "Seven Sins Incarnate", tier: "Tier 4: Elite Commander", tierBadge: "Tier 4", tierColor: "#ef4444", desc: "Krodh, Lobh aur Ahankar ke sakshat avtar.", bonus: 5.00},
 
-    // Tier 5: Sovereign Tier (Level 101 - 200)
-    {minLvl: 101, maxLvl: 125, name: "Demon King (Maou)", tier: "🟣 Tier 5: Sovereign", desc: "Poore demon race ka ek sarvochch samrat.", bonus: 5.00},
-    {minLvl: 126, maxLvl: 150, name: "Abyssal Sovereign", tier: "🟣 Tier 5: Sovereign", desc: "Anant patal lok (Abyss) ka amar rakshak.", bonus: 6.00},
-    {minLvl: 151, maxLvl: 175, name: "The Fallen One / Lucifer", tier: "🟣 Tier 5: Sovereign", desc: "Jise swarg se nikala gaya; ultimate black magic lord.", bonus: 7.50},
-    {minLvl: 176, maxLvl: 200, name: "The Devourer", tier: "🟣 Tier 5: Sovereign", desc: "Jo poore brahmand ki prana aur aatma kha jata hai.", bonus: 9.00},
+    // Tier 5: Sovereign Tier (Lvl 201 - 350)
+    {minLvl: 201, maxLvl: 240, name: "Demon King (Maou)", tier: "Tier 5: Sovereign", tierBadge: "Tier 5", tierColor: "#a855f7", desc: "Samast asur aur demon kul ke sarvochch samrat.", bonus: 6.20},
+    {minLvl: 241, maxLvl: 280, name: "Abyssal Sovereign", tier: "Tier 5: Sovereign", tierBadge: "Tier 5", tierColor: "#a855f7", desc: "Anant patal lok (Abyss) ke amar adhipati.", bonus: 7.50},
+    {minLvl: 281, maxLvl: 320, name: "The Fallen Seraph", tier: "Tier 5: Sovereign", tierBadge: "Tier 5", tierColor: "#a855f7", desc: "Devlok se bhrasht hua anant kaali urja ka swami.", bonus: 9.00},
+    {minLvl: 321, maxLvl: 350, name: "Cosmic Devourer", tier: "Tier 5: Sovereign", tierBadge: "Tier 5", tierColor: "#a855f7", desc: "Taaron aur roohon ko nigal jane wala maha-asur.", bonus: 11.00},
 
-    // Tier 6: GOD TIER (Level 200+)
-    {minLvl: 201, maxLvl: 250, name: "Demon God (Mazoku no Kami)", tier: "🌟 Tier 6: GOD TIER", desc: "Jo khud demon se bhagwan aur cosmic entity ban gaya.", bonus: 12.00},
-    {minLvl: 251, maxLvl: 300, name: "Primordial Demon", tier: "🌟 Tier 6: GOD TIER", desc: "Jo samay shuru hone se pehle ka Space-Time ruler hai.", bonus: 16.00},
-    {minLvl: 301, maxLvl: 350, name: "Satan / The Devil", tier: "🌟 Tier 6: GOD TIER", desc: "Universe ke ultimate evil aur darkness ka mool strot.", bonus: 20.00},
-    {minLvl: 351, maxLvl: 400, name: "Azathoth (The Blind Idiot God)", tier: "🌟 Tier 6: GOD TIER", desc: "Cosmic horror ka ultimate supreme deity.", bonus: 25.00},
-    {minLvl: 401, maxLvl: Infinity, name: "The Absolute Void", tier: "🌟 Tier 6: GOD TIER", desc: "Jahan se saari dark magic aur reality janam leti hai.", bonus: 35.00},
+    // Tier 6: GOD TIER (Lvl 351+)
+    {minLvl: 351, maxLvl: 420, name: "Demon God (Mazoku)", tier: "Tier 6: GOD TIER", tierBadge: "Tier 6", tierColor: "#f59e0b", desc: "Demonic simaon ko paar karke cosmic bhagwan bana praani.", bonus: 14.00},
+    {minLvl: 421, maxLvl: 500, name: "Primordial Overlord", tier: "Tier 6: GOD TIER", tierBadge: "Tier 6", tierColor: "#f59e0b", desc: "Samay aur shrishti ke nirman se pehle ka amartya shaasak.", bonus: 18.00},
+    {minLvl: 501, maxLvl: 650, name: "Lord of Chaos", tier: "Tier 6: GOD TIER", tierBadge: "Tier 6", tierColor: "#f59e0b", desc: "Samast brahmand ki shunya aur pralay ka mul strot.", bonus: 24.00},
+    {minLvl: 651, maxLvl: Infinity, name: "The Absolute Void", tier: "Tier 6: GOD TIER", tierBadge: "Tier 6", tierColor: "#f59e0b", desc: "Jahan se saari dark magic aur reality janam leti aur vilin hoti hai.", bonus: 32.00},
 ]
 
-
-function getCurrentDemonRank() {
+function isDemonActive() {
     var dt = gameData.taskData["Demon training"]
     var dtLvl = dt ? Math.max(dt.level, dt.maxLevel || 0) : 0
-    var evilEquivalentLvl = Math.floor(gameData.evil / 10)
-    var lvl = Math.max(dtLvl, evilEquivalentLvl)
+    return (gameData.evil > 0 || gameData.rebirthTwoCount > 0 || dtLvl > 0)
+}
 
+function getDemonLevel() {
+    if (!isDemonActive()) return 0
+    var dt = gameData.taskData["Demon training"]
+    var dtLvl = dt ? Math.max(dt.level, dt.maxLevel || 0) : 0
+    var evilLvl = Math.floor(Math.sqrt((gameData.evil || 0) * 2))
+    var lvl = Math.max(1, dtLvl + evilLvl)
+    return lvl
+}
+
+function getCurrentDemonRank() {
+    if (!isDemonActive()) {
+        return {minLvl: 0, maxLvl: 0, name: "Mortal (Manushya)", tier: "Mortal", tierBadge: "Mortal", tierColor: "#94a3b8", desc: "Demonic shakti abhi jagrit nahi hui hai.", bonus: 1.00}
+    }
+    var lvl = getDemonLevel()
     for (var i = 0; i < demonRanks.length; i++) {
         var r = demonRanks[i]
         if (lvl >= r.minLvl && lvl <= r.maxLvl) {
@@ -283,10 +294,20 @@ function getCurrentDemonRank() {
     return demonRanks[demonRanks.length - 1]
 }
 
-function getDemonRankMultiplier() {
-    if (gameData.evil <= 0 && gameData.rebirthTwoCount <= 0 && (!gameData.taskData["Demon training"] || gameData.taskData["Demon training"].level === 0)) {
-        return 1
+function getCurrentDemonRankIndex() {
+    if (!isDemonActive()) return -1
+    var lvl = getDemonLevel()
+    for (var i = 0; i < demonRanks.length; i++) {
+        var r = demonRanks[i]
+        if (lvl >= r.minLvl && lvl <= r.maxLvl) {
+            return i
+        }
     }
+    return demonRanks.length - 1
+}
+
+function getDemonRankMultiplier() {
+    if (!isDemonActive()) return 1
     var rank = getCurrentDemonRank()
     return rank ? rank.bonus : 1
 }
@@ -940,19 +961,57 @@ function updateText() {
     // Demon Hierarchy Section Display
     var demonCard = document.getElementById("demonHierarchySection")
     if (demonCard) {
-        if (gameData.evil > 0 || gameData.rebirthTwoCount > 0 || (gameData.taskData["Demon training"] && (gameData.taskData["Demon training"].level > 0 || (gameData.taskData["Demon training"].maxLevel || 0) > 0))) {
+        if (isDemonActive()) {
             demonCard.style.display = "block"
             var currentRank = getCurrentDemonRank()
+            var rankIndex = getCurrentDemonRankIndex()
+            var currentLvl = getDemonLevel()
+
             var badgeElem = document.getElementById("demonTierBadge")
-            if (badgeElem) badgeElem.textContent = currentRank.tier
+            if (badgeElem) {
+                badgeElem.textContent = currentRank.tierBadge || "Tier 1"
+                if (currentRank.tierColor) {
+                    badgeElem.style.borderColor = currentRank.tierColor
+                    badgeElem.style.color = "#ffffff"
+                    badgeElem.style.backgroundColor = currentRank.tierColor + "33"
+                }
+            }
+
             var titleElem = document.getElementById("demonRankTitle")
-            if (titleElem) titleElem.textContent = "👹 " + currentRank.name
+            if (titleElem) titleElem.textContent = currentRank.name
+
+            var lvlElem = document.getElementById("demonLevelDisplay")
+            if (lvlElem) lvlElem.textContent = "Lvl " + currentLvl
+
             var descElem = document.getElementById("demonRankDesc")
             if (descElem) descElem.textContent = currentRank.desc
+
             var bonusElem = document.getElementById("demonRankBonus")
             if (bonusElem) {
                 var bonusPct = Math.round((currentRank.bonus - 1) * 100)
                 bonusElem.textContent = "+" + bonusPct + "% All XP & Evil (x" + currentRank.bonus.toFixed(2) + ")"
+            }
+
+            // Next Rank Progress
+            var nextRank = (rankIndex >= 0 && rankIndex < demonRanks.length - 1) ? demonRanks[rankIndex + 1] : null
+            var nextLabel = document.getElementById("demonNextRankLabel")
+            var nextReq = document.getElementById("demonNextRankReq")
+            var pBar = document.getElementById("demonProgressBar")
+
+            if (nextRank) {
+                if (nextLabel) nextLabel.textContent = "Next: " + nextRank.name.split(" (")[0]
+                var neededLvl = nextRank.minLvl
+                var prevLvl = currentRank.minLvl
+                var progressInSpan = currentLvl - prevLvl
+                var totalSpan = neededLvl - prevLvl
+                var pct = Math.min(100, Math.max(5, Math.round((progressInSpan / totalSpan) * 100)))
+
+                if (nextReq) nextReq.textContent = "Lvl " + currentLvl + " / " + neededLvl
+                if (pBar) pBar.style.width = pct + "%"
+            } else {
+                if (nextLabel) nextLabel.textContent = "MAX RANK REACHED"
+                if (nextReq) nextReq.textContent = "Lvl " + currentLvl
+                if (pBar) pBar.style.width = "100%"
             }
         } else {
             demonCard.style.display = "none"
