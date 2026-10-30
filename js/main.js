@@ -189,6 +189,7 @@ const modernSkillCategories = {
 }
 
 const modernItemBaseData = {
+    // Modern Properties
     "Homeless": {name: "Homeless", expense: 0, effect: 1},
     "Capsule Pod": {name: "Capsule Pod", expense: 20, effect: 1.4},
     "Shared Studio": {name: "Shared Studio", expense: 120, effect: 2},
@@ -198,19 +199,20 @@ const modernItemBaseData = {
     "Smart Villa": {name: "Smart Villa", expense: 350000, effect: 25},
     "Sky Penthouse Megatower": {name: "Sky Penthouse Megatower", expense: 6000000, effect: 60},
 
-    "Book": {name: "Book", expense: 10, effect: 1.5, description: "Skill xp"},
-    "Dumbbells": {name: "Dumbbells", expense: 50, effect: 1.5, description: "Strength xp"},
-    "Personal squire": {name: "Personal squire", expense: 200, effect: 2, description: "Job xp"},
-    "Steel longsword": {name: "Steel longsword", expense: 1000, effect: 2, description: "Military xp"},
-    "Butler": {name: "Butler", expense: 7500, effect: 1.5, description: "Happiness"},
-    "Sapphire charm": {name: "Sapphire charm", expense: 50000, effect: 3, description: "Magic xp"},
-    "Study desk": {name: "Study desk", expense: 1000000, effect: 2, description: "Skill xp"},
-    "Library": {name: "Library", expense: 10000000, effect: 1.5, description: "Skill xp"},
+    // Modern Misc Items
+    "E-Reader": {name: "E-Reader", expense: 15, effect: 1.5, description: "Skill xp"},
+    "Smart Gym Pass": {name: "Smart Gym Pass", expense: 60, effect: 1.5, description: "Fitness xp"},
+    "AI Assistant": {name: "AI Assistant", expense: 250, effect: 2, description: "Job xp"},
+    "Cyber Katana": {name: "Cyber Katana", expense: 1200, effect: 2, description: "Tower & Combat"},
+    "Robotic Butler": {name: "Robotic Butler", expense: 9000, effect: 1.5, description: "Happiness"},
+    "Quantum Co-Processor": {name: "Quantum Co-Processor", expense: 60000, effect: 3, description: "Coding & Tech xp"},
+    "Holographic Workstation": {name: "Holographic Workstation", expense: 1200000, effect: 2, description: "Skill xp"},
+    "Neural Archive": {name: "Neural Archive", expense: 12000000, effect: 1.5, description: "Skill xp"},
 }
 
 const modernItemCategories = {
     "Properties": ["Homeless", "Capsule Pod", "Shared Studio", "Suburban Apartment", "Luxury Condo", "Cyber Loft", "Smart Villa", "Sky Penthouse Megatower"],
-    "Misc": ["Book", "Dumbbells", "Personal squire", "Steel longsword", "Butler", "Sapphire charm", "Study desk", "Library"]
+    "Misc": ["E-Reader", "Smart Gym Pass", "AI Assistant", "Cyber Katana", "Robotic Butler", "Quantum Co-Processor", "Holographic Workstation", "Neural Archive"]
 }
 
 const modernMobNames = [
@@ -363,6 +365,15 @@ const tooltips = {
     "Smart Villa": "A gated architectural marvel completely managed by an autonomous AI system with a solar grid and robotic security.",
     "Sky Penthouse Megatower": "The ultra-luxurious apex of a cyber megatower above the clouds, with a private maglev landing pad and panoramic metropolis vistas.",
 
+    "E-Reader": "A lightweight digital tablet loaded with endless e-books, research whitepapers, and technical tutorials.",
+    "Smart Gym Pass": "Wearable biometric sensors and access to an automated 24/7 robotic fitness center.",
+    "AI Assistant": "An intelligent generative AI assistant that automates mundane tasks and boosts workplace productivity.",
+    "Cyber Katana": "A carbon-fiber blade with high-frequency thermal edge, deadly against cyber threats and glitch entities.",
+    "Robotic Butler": "A polite humanoid service android that maintains your living quarters, cleans, and brews artisanal coffee.",
+    "Quantum Co-Processor": "A quantum cryptographic coprocessor that accelerates algorithms, coding, and mental data synthesis.",
+    "Holographic Workstation": "A multi-monitor curved cockpit workstation with biometric tracking and zero-latency neural link.",
+    "Neural Archive": "A private high-speed quantum server cluster archiving humanity's collective digitized knowledge.",
+
     "Homeless": "Sleep on the uncomfortable, filthy streets while almost freezing to death every night. It cannot get any worse than this.",
     "Tent": "A thin sheet of tattered cloth held up by a couple of feeble, wooden sticks. Horrible living conditions but at least you have a roof over your head.",
     "Wooden hut": "Shabby logs and dirty hay glued together with horse manure. Much more sturdy than a tent, however, the stench isn't very pleasant.",
@@ -477,13 +488,13 @@ function getBaseLog(x, y) {
 
 function getBindedTaskEffect(taskName) {
     var task = gameData.taskData[taskName]
-    if (!task) return function() { return 1 }
+    if (!task || typeof task.getEffect !== "function") return function() { return 1 }
     return task.getEffect.bind(task)
 }
 
 function getBindedItemEffect(itemName) {
     var item = gameData.itemData[itemName]
-    if (!item) return function() { return 1 }
+    if (!item || typeof item.getEffect !== "function") return function() { return 1 }
     return item.getEffect.bind(item)
 }
 
@@ -602,11 +613,15 @@ function addMultipliers() {
             task.incomeMultipliers.push(getReincarnationMultiplier)
             task.xpMultipliers.push(getBindedTaskEffect("Productivity"))
             task.xpMultipliers.push(getBindedItemEffect("Personal squire"))    
+            task.xpMultipliers.push(getBindedItemEffect("AI Assistant"))
         } else if (task instanceof Skill) {
             task.xpMultipliers.push(getBindedTaskEffect("Concentration"))
             task.xpMultipliers.push(getBindedItemEffect("Book"))
             task.xpMultipliers.push(getBindedItemEffect("Study desk"))
             task.xpMultipliers.push(getBindedItemEffect("Library"))
+            task.xpMultipliers.push(getBindedItemEffect("E-Reader"))
+            task.xpMultipliers.push(getBindedItemEffect("Holographic Workstation"))
+            task.xpMultipliers.push(getBindedItemEffect("Neural Archive"))
             task.xpMultipliers.push(getShadowBrokerEffect)
         }
 
@@ -618,6 +633,10 @@ function addMultipliers() {
             if (["Tech Billionaire", "CEO", "Banker"].includes(task.name)) {
                 task.incomeMultipliers.push(getBindedTaskEffect("Hacking"))
             }
+        } else if (task.name === "Fitness") {
+            task.xpMultipliers.push(getBindedItemEffect("Smart Gym Pass"))
+        } else if (task.name === "Coding" || task.name === "Hacking") {
+            task.xpMultipliers.push(getBindedItemEffect("Quantum Co-Processor"))
         }
 
         if (jobCategories["Military"].includes(task.name)) {
@@ -736,8 +755,9 @@ function setCustomEffects() {
 function getHappiness() {
     var meditationEffect = getBindedTaskEffect("Meditation")
     var butlerEffect = getBindedItemEffect("Butler")
+    var roboticButlerEffect = getBindedItemEffect("Robotic Butler")
     var propEffect = gameData.currentProperty ? gameData.currentProperty.getEffect() : 1
-    var happiness = meditationEffect() * butlerEffect() * propEffect
+    var happiness = meditationEffect() * butlerEffect() * roboticButlerEffect() * propEffect
     return happiness
 }
 
@@ -1633,7 +1653,16 @@ function getPlayerAttack() {
                       (fin ? fin.level * 1.5 : 0) +
                       (hac ? hac.level * 6.0 : 0)
 
-        var finalAtk = Math.max(15, Math.floor((baseAtk + statAtk) * relicMult * reincMult))
+        var weaponMult = 1.0
+        if (gameData.currentMisc) {
+            for (var item of gameData.currentMisc) {
+                if (item && item.name === "Cyber Katana") weaponMult += 0.5
+                if (item && item.name === "Smart Gym Pass") weaponMult += 0.2
+                if (item && item.name === "Quantum Co-Processor") weaponMult += 0.3
+            }
+        }
+
+        var finalAtk = Math.max(15, Math.floor((baseAtk + statAtk) * weaponMult * relicMult * reincMult))
         return finalAtk
     }
 
@@ -2046,9 +2075,10 @@ function assignMethods() {
 
     for (key in gameData.itemData) {
         var item = gameData.itemData[key]
-        if (itemBaseData[item.name]) {
-            item.baseData = itemBaseData[item.name]
-            item = Object.assign(new Item(itemBaseData[item.name]), item)
+        var iData = (worldData.itemBaseData && worldData.itemBaseData[item.name]) || itemBaseData[item.name] || modernItemBaseData[item.name]
+        if (iData) {
+            item.baseData = iData
+            item = Object.assign(new Item(iData), item)
             gameData.itemData[key] = item
         }
     }
@@ -2175,15 +2205,15 @@ function initWorldRequirements() {
             "Smart Villa": new CoinRequirement([getItemElement("Smart Villa")], [{requirement: (gameData.itemData["Smart Villa"] ? gameData.itemData["Smart Villa"].getExpense() : 350000) * 100}]),
             "Sky Penthouse Megatower": new CoinRequirement([getItemElement("Sky Penthouse Megatower")], [{requirement: (gameData.itemData["Sky Penthouse Megatower"] ? gameData.itemData["Sky Penthouse Megatower"].getExpense() : 6000000) * 100}]),
 
-            // Misc
-            "Book": new CoinRequirement([getItemElement("Book")], [{requirement: 0}]),
-            "Dumbbells": new CoinRequirement([getItemElement("Dumbbells")], [{requirement: 50 * 100}]),
-            "Personal squire": new CoinRequirement([getItemElement("Personal squire")], [{requirement: 200 * 100}]),
-            "Steel longsword": new CoinRequirement([getItemElement("Steel longsword")], [{requirement: 1000 * 100}]),
-            "Butler": new CoinRequirement([getItemElement("Butler")], [{requirement: 7500 * 100}]),
-            "Sapphire charm": new CoinRequirement([getItemElement("Sapphire charm")], [{requirement: 50000 * 100}]),
-            "Study desk": new CoinRequirement([getItemElement("Study desk")], [{requirement: 1000000 * 100}]),
-            "Library": new CoinRequirement([getItemElement("Library")], [{requirement: 10000000 * 100}]),
+            // Modern Misc
+            "E-Reader": new CoinRequirement([getItemElement("E-Reader")], [{requirement: 0}]),
+            "Smart Gym Pass": new CoinRequirement([getItemElement("Smart Gym Pass")], [{requirement: 60 * 100}]),
+            "AI Assistant": new CoinRequirement([getItemElement("AI Assistant")], [{requirement: 250 * 100}]),
+            "Cyber Katana": new CoinRequirement([getItemElement("Cyber Katana")], [{requirement: 1200 * 100}]),
+            "Robotic Butler": new CoinRequirement([getItemElement("Robotic Butler")], [{requirement: 9000 * 100}]),
+            "Quantum Co-Processor": new CoinRequirement([getItemElement("Quantum Co-Processor")], [{requirement: 60000 * 100}]),
+            "Holographic Workstation": new CoinRequirement([getItemElement("Holographic Workstation")], [{requirement: 1200000 * 100}]),
+            "Neural Archive": new CoinRequirement([getItemElement("Neural Archive")], [{requirement: 12000000 * 100}]),
         }
         for (var k in modernReqs) {
             gameData.requirements[k] = modernReqs[k]
