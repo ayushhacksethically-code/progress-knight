@@ -1400,16 +1400,18 @@ function getPlayerAttack() {
     var mc = gameData.taskData["Mana control"]
     var sc = gameData.taskData["Spellcraft"]
     
-    var statAtk = (str ? str.level * 2.0 : 0) +
+    var statAtk = (str ? str.level * 2.5 : 0) +
                   (mm ? mm.level * 1.5 : 0) +
-                  (bt ? bt.level * 3.0 : 0) +
-                  (mc ? mc.level * 2.0 : 0) +
-                  (sc ? sc.level * 3.5 : 0)
+                  (bt ? bt.level * 3.5 : 0) +
+                  (mc ? mc.level * 2.5 : 0) +
+                  (sc ? sc.level * 4.0 : 0)
 
     var weaponMult = 1.0
     if (gameData.currentMisc) {
         for (var item of gameData.currentMisc) {
             if (item && item.name === "Steel longsword") weaponMult += 0.5
+            if (item && item.name === "Dumbbells") weaponMult += 0.2
+            if (item && item.name === "Sapphire charm") weaponMult += 0.3
         }
     }
 
@@ -1427,12 +1429,12 @@ function getPlayerMaxHp() {
     var im = gameData.taskData["Immortality"]
     var sim = gameData.taskData["Super immortality"]
 
-    var statHp = (str ? str.level * 12 : 0) +
-                 (mm ? mm.level * 10 : 0) +
-                 (im ? im.level * 20 : 0) +
-                 (sim ? sim.level * 60 : 0)
+    var statHp = (str ? str.level * 15 : 0) +
+                 (mm ? mm.level * 12 : 0) +
+                 (im ? im.level * 25 : 0) +
+                 (sim ? sim.level * 80 : 0)
 
-    var propMult = (gameData.currentProperty && gameData.currentProperty.getEffect) ? Math.min(5, gameData.currentProperty.getEffect()) : 1.0
+    var propMult = (gameData.currentProperty && gameData.currentProperty.getEffect) ? Math.min(8, gameData.currentProperty.getEffect()) : 1.0
     var relicMult = 1 + (gameData.tower && gameData.tower.upgrades ? (gameData.tower.upgrades.hpBonus || 0) * 0.20 : 0)
 
     var finalHp = Math.max(100, Math.floor((baseHp + statHp) * propMult * relicMult))
@@ -1441,11 +1443,11 @@ function getPlayerMaxHp() {
 
 function getTowerEnemy(floor) {
     var isBoss = (floor % 10 === 0)
-    var baseHp = Math.floor(100 * Math.pow(1.15, floor - 1))
-    var baseAtk = Math.floor(8 * Math.pow(1.12, floor - 1))
+    var baseHp = Math.floor(100 * Math.pow(1.08, floor - 1))
+    var baseAtk = Math.max(5, Math.floor(6 * Math.pow(1.045, floor - 1)))
 
     var enemyHp = isBoss ? baseHp * 5 : baseHp
-    var enemyAtk = isBoss ? Math.floor(baseAtk * 2.0) : baseAtk
+    var enemyAtk = isBoss ? Math.floor(baseAtk * 1.7) : baseAtk
 
     var name = ""
     if (isBoss) {
