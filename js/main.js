@@ -33,6 +33,10 @@ var gameData = {
             goldBonus: 0
         }
     },
+
+    world: 'fantasy',
+    reincarnationMultiplier: 1,
+    reincarnationCount: 0,
 }
 
 var tempData = {}
@@ -156,6 +160,78 @@ const itemCategories = {
     "Misc": ["Book", "Dumbbells", "Personal squire", "Steel longsword", "Butler", "Sapphire charm", "Study desk", "Library"]
 }
 
+// ==========================================================================
+// Modern World (Sci-Fi / Cyberpunk Dimension) Data
+// ==========================================================================
+
+const modernJobBaseData = {
+    "Student": {name: "Student", maxXp: 60, income: 15},
+    "Fast Food Worker": {name: "Fast Food Worker", maxXp: 200, income: 50},
+    "Office Worker": {name: "Office Worker", maxXp: 1200, income: 250},
+    "Banker": {name: "Banker", maxXp: 8000, income: 1500},
+    "CEO": {name: "CEO", maxXp: 60000, income: 12000},
+    "Tech Billionaire": {name: "Tech Billionaire", maxXp: 500000, income: 100000},
+}
+
+const modernSkillBaseData = {
+    "Fitness": {name: "Fitness", maxXp: 100, effect: 0.01, description: "Strength & HP"},
+    "Coding": {name: "Coding", maxXp: 120, effect: 0.02, description: "Tech job income & xp"},
+    "Finance": {name: "Finance", maxXp: 150, effect: 0.01, description: "All income boost"},
+    "Hacking": {name: "Hacking", maxXp: 200, effect: 0.02, description: "Tower attack & Cyber pay"},
+}
+
+const modernJobCategories = {
+    "Corporate & Tech": ["Student", "Fast Food Worker", "Office Worker", "Banker", "CEO", "Tech Billionaire"]
+}
+
+const modernSkillCategories = {
+    "Modern Skills": ["Fitness", "Coding", "Finance", "Hacking"]
+}
+
+const modernMobNames = [
+    "Glitch Imp",
+    "Rogue AI",
+    "Cyber Hound",
+    "Nanite Swarm",
+    "Android Enforcer",
+    "Neon Stalker",
+    "Data Wraith",
+    "Chrome Sentinel",
+    "Synapse Drone",
+    "Quantum Hacker"
+]
+
+const modernBossNames = [
+    "Neon Overlord",
+    "Mainframe Guardian",
+    "The Architect (God Tier)",
+    "Quantum Core",
+    "Cyber Leviathan",
+    "Neural Hivemind",
+    "Singularity Engine",
+    "Zero-Day Harbinger"
+]
+
+function getWorldData() {
+    if (gameData && gameData.world === 'modern') {
+        return {
+            world: 'modern',
+            jobBaseData: modernJobBaseData,
+            skillBaseData: modernSkillBaseData,
+            jobCategories: modernJobCategories,
+            skillCategories: modernSkillCategories
+        }
+    } else {
+        return {
+            world: 'fantasy',
+            jobBaseData: jobBaseData,
+            skillBaseData: skillBaseData,
+            jobCategories: jobCategories,
+            skillCategories: skillCategories
+        }
+    }
+}
+
 const categoryAccentColors = {
     "Common work": "#3b82f6",
     "Military": "#f43f5e",
@@ -167,6 +243,8 @@ const categoryAccentColors = {
     "Combat": "#f97316",
     "Magic": "#38bdf8",
     "Dark magic": "#ec4899",
+    "Corporate & Tech": "#06b6d4",
+    "Modern Skills": "#8b5cf6",
     "Properties": "#10b981",
     "Misc": "#14b8a6",
 }
@@ -233,6 +311,17 @@ const tooltips = {
     "Demon training": "A mere human body is too feeble and weak to withstand evil. Train with forbidden methods to slowly manifest into a demon, capable of absorbing knowledge rapidly.",
     "Blood meditation": "Grow and culture the evil within you through the sacrifice of other living beings, drastically increasing evil gain.",
     "Demon's wealth": "Through the means of dark magic, multiply the raw matter of the coins you receive from your job.",
+
+    // Modern World (Dimension II) Tooltips
+    "Fast Food Worker": "Flip burgers and serve drinks behind the counter for minimum wage.",
+    "Office Worker": "Process spreadsheets and respond to endless email chains in a small cubicle.",
+    "Banker": "Manage high-value investment portfolios and trade stocks on Wall Street.",
+    "CEO": "Lead a multinational enterprise and steer global company strategy.",
+    "Tech Billionaire": "Disrupt industries with cutting-edge tech and venture into space exploration.",
+    "Fitness": "Train your physical body, building peak endurance and combat resilience.",
+    "Coding": "Master programming algorithms and systems architecture to build digital empires.",
+    "Finance": "Understand markets and cash flow dynamics to maximize every dollar earned.",
+    "Hacking": "Penetrate firewalls, decrypt secure nodes, and dominate cyber space.",
 
     "Homeless": "Sleep on the uncomfortable, filthy streets while almost freezing to death every night. It cannot get any worse than this.",
     "Tent": "A thin sheet of tattered cloth held up by a couple of feeble, wooden sticks. Horrible living conditions but at least you have a roof over your head.",
@@ -446,6 +535,10 @@ function checkAutoAssign() {
     }
 }
 
+function getReincarnationMultiplier() {
+    return (gameData && gameData.reincarnationMultiplier) ? gameData.reincarnationMultiplier : 1.0
+}
+
 function addMultipliers() {
     for (taskName in gameData.taskData) {
         var task = gameData.taskData[taskName]
@@ -459,12 +552,14 @@ function addMultipliers() {
         task.xpMultipliers.push(getBindedTaskEffect("Demon training"))
         task.xpMultipliers.push(getPrestigeMultiplier)
         task.xpMultipliers.push(getDemonRankMultiplier)
+        task.xpMultipliers.push(getReincarnationMultiplier)
 
         if (task instanceof Job) {
             task.incomeMultipliers.push(task.getLevelMultiplier.bind(task))
             task.incomeMultipliers.push(getBindedTaskEffect("Demon's wealth"))
             task.incomeMultipliers.push(getPrestigeMultiplier)
             task.incomeMultipliers.push(getTradePrinceEffect)
+            task.incomeMultipliers.push(getReincarnationMultiplier)
             task.xpMultipliers.push(getBindedTaskEffect("Productivity"))
             task.xpMultipliers.push(getBindedItemEffect("Personal squire"))    
         } else if (task instanceof Skill) {
@@ -473,6 +568,16 @@ function addMultipliers() {
             task.xpMultipliers.push(getBindedItemEffect("Study desk"))
             task.xpMultipliers.push(getBindedItemEffect("Library"))
             task.xpMultipliers.push(getShadowBrokerEffect)
+        }
+
+        // Modern World Multipliers
+        if (modernJobCategories["Corporate & Tech"] && modernJobCategories["Corporate & Tech"].includes(task.name)) {
+            task.incomeMultipliers.push(getBindedTaskEffect("Finance"))
+            task.incomeMultipliers.push(getBindedTaskEffect("Coding"))
+            task.xpMultipliers.push(getBindedTaskEffect("Coding"))
+            if (["Tech Billionaire", "CEO", "Banker"].includes(task.name)) {
+                task.incomeMultipliers.push(getBindedTaskEffect("Hacking"))
+            }
         }
 
         if (jobCategories["Military"].includes(task.name)) {
@@ -556,6 +661,34 @@ function setCustomEffects() {
         immortality.getEffect = function() {
             var multiplier = 1 + getBaseLog(33, immortality.level + 1) 
             return multiplier
+        }
+    }
+
+    var fitness = gameData.taskData["Fitness"]
+    if (fitness) {
+        fitness.getEffect = function() {
+            return 1 + fitness.level * 0.02
+        }
+    }
+
+    var coding = gameData.taskData["Coding"]
+    if (coding) {
+        coding.getEffect = function() {
+            return 1 + coding.level * 0.03
+        }
+    }
+
+    var finance = gameData.taskData["Finance"]
+    if (finance) {
+        finance.getEffect = function() {
+            return 1 + finance.level * 0.025
+        }
+    }
+
+    var hacking = gameData.taskData["Hacking"]
+    if (hacking) {
+        hacking.getEffect = function() {
+            return 1 + hacking.level * 0.04
         }
     }
 }
@@ -708,7 +841,7 @@ function createHeaderRow(templates, categoryType, categoryName) {
     var headerRow = templates.headerRow.content.firstElementChild.cloneNode(true)
     headerRow.getElementsByClassName("category")[0].textContent = categoryName
     if (categoryType != itemCategories) {
-        headerRow.getElementsByClassName("valueType")[0].textContent = categoryType == jobCategories ? "Income/day" : "Effect"
+        headerRow.getElementsByClassName("valueType")[0].textContent = (categoryType == jobCategories || categoryType == modernJobCategories) ? "Income/day" : "Effect"
     }
 
     var accent = categoryAccentColors[categoryName] || "#3b82f6"
@@ -930,7 +1063,8 @@ function updateHeaderRows(categories) {
         }
         var skipSkillElement = headerRow.getElementsByClassName("skipSkill")[0]
         if (skipSkillElement) {
-            skipSkillElement.style.display = (categories == skillCategories && autoLearnElement && autoLearnElement.checked) ? "block" : "none"
+            var isSkillCat = (categories == skillCategories || categories == modernSkillCategories)
+            skipSkillElement.style.display = (isSkillCat && autoLearnElement && autoLearnElement.checked) ? "block" : "none"
         }
     }
 }
@@ -1074,6 +1208,51 @@ function updateText() {
             demonCard.style.display = "none"
         }
     }
+
+    // Dimensional Reincarnation Section Update
+    var archmage = gameData.taskData["Archmage"]
+    var archmageLvl = archmage ? archmage.level : 0
+    var reincBtn = document.getElementById("reincarnateButton")
+    var reincLvlElem = document.getElementById("reincarnationArchmageLevel")
+    var reincBadge = document.getElementById("reincarnationStatusBadge")
+
+    if (reincLvlElem) {
+        reincLvlElem.textContent = archmageLvl + " / 1000"
+    }
+
+    if (reincBtn) {
+        if (gameData.world === 'modern') {
+            reincBtn.disabled = true
+            reincBtn.style.opacity = "0.7"
+            reincBtn.style.cursor = "default"
+            reincBtn.textContent = "✓ In Modern World (Dimension II)"
+            if (reincBadge) {
+                reincBadge.textContent = "Active: Dimension II (Modern)"
+                reincBadge.style.background = "rgba(6, 182, 212, 0.3)"
+                reincBadge.style.color = "#22d3ee"
+            }
+        } else if (archmageLvl >= 1000) {
+            reincBtn.disabled = false
+            reincBtn.style.opacity = "1"
+            reincBtn.style.cursor = "pointer"
+            reincBtn.textContent = "🚀 Reincarnate to Modern World (Unlocked!)"
+            if (reincBadge) {
+                reincBadge.textContent = "⚡ Ready to Reincarnate"
+                reincBadge.style.background = "#10b981"
+                reincBadge.style.color = "#ffffff"
+            }
+        } else {
+            reincBtn.disabled = true
+            reincBtn.style.opacity = "0.6"
+            reincBtn.style.cursor = "not-allowed"
+            reincBtn.textContent = "Reincarnate to Modern World"
+            if (reincBadge) {
+                reincBadge.textContent = "Requires Archmage Lvl 1000"
+                reincBadge.style.background = "rgba(139, 92, 246, 0.25)"
+                reincBadge.style.color = "#c4b5fd"
+            }
+        }
+    }
 }
 
 function setSignDisplay() {
@@ -1156,7 +1335,8 @@ function getNextEntity(data, categoryType, entityName) {
 
 function autoPromote() {
     if (!autoPromoteElement || !autoPromoteElement.checked || !gameData.currentJob) return
-    var nextEntity = getNextEntity(gameData.taskData, jobCategories, gameData.currentJob.name)
+    var worldData = getWorldData()
+    var nextEntity = getNextEntity(gameData.taskData, worldData.jobCategories, gameData.currentJob.name)
     if (nextEntity == null) return
     var requirement = gameData.requirements[nextEntity.name]
     if (requirement && requirement.isCompleted()) gameData.currentJob = nextEntity
@@ -1181,7 +1361,7 @@ function setSkillWithLowestMaxXp() {
     }
 
     if (Object.keys(xpDict).length === 0) {
-        skillWithLowestMaxXp = gameData.taskData["Concentration"]
+        skillWithLowestMaxXp = (gameData.world === 'modern') ? gameData.taskData["Fitness"] : gameData.taskData["Concentration"]
         return
     }
 
@@ -1308,9 +1488,14 @@ function rebirthReset() {
     setTab(jobTabButton, "jobs")
 
     gameData.coins = gameData.merchantsBlessing ? 1000000 : 0
-    gameData.days = 365 * 14
-    gameData.currentJob = gameData.taskData["Beggar"]
-    gameData.currentSkill = gameData.taskData["Concentration"]
+    gameData.days = (gameData.world === 'modern') ? 365 * 15 : 365 * 14
+    if (gameData.world === 'modern') {
+        gameData.currentJob = gameData.taskData["Student"]
+        gameData.currentSkill = gameData.taskData["Fitness"]
+    } else {
+        gameData.currentJob = gameData.taskData["Beggar"]
+        gameData.currentSkill = gameData.taskData["Concentration"]
+    }
     gameData.currentProperty = gameData.itemData["Homeless"]
     gameData.currentMisc = []
     gameData.autoJob = null
@@ -1393,6 +1578,25 @@ function initTowerData() {
 }
 
 function getPlayerAttack() {
+    var relicMult = 1 + (gameData.tower && gameData.tower.upgrades ? (gameData.tower.upgrades.attackBonus || 0) * 0.15 : 0)
+    var reincMult = (gameData && gameData.reincarnationMultiplier) ? gameData.reincarnationMultiplier : 1.0
+
+    if (gameData && gameData.world === 'modern') {
+        var baseAtk = 25
+        var fit = gameData.taskData["Fitness"]
+        var cod = gameData.taskData["Coding"]
+        var fin = gameData.taskData["Finance"]
+        var hac = gameData.taskData["Hacking"]
+
+        var statAtk = (fit ? fit.level * 3.5 : 0) +
+                      (cod ? cod.level * 2.5 : 0) +
+                      (fin ? fin.level * 1.5 : 0) +
+                      (hac ? hac.level * 6.0 : 0)
+
+        var finalAtk = Math.max(15, Math.floor((baseAtk + statAtk) * relicMult * reincMult))
+        return finalAtk
+    }
+
     var baseAtk = 15
     var str = gameData.taskData["Strength"]
     var mm = gameData.taskData["Muscle memory"]
@@ -1416,13 +1620,28 @@ function getPlayerAttack() {
     }
 
     var demonRankMult = (typeof getDemonRankMultiplier === "function") ? getDemonRankMultiplier() : 1.0
-    var relicMult = 1 + (gameData.tower && gameData.tower.upgrades ? (gameData.tower.upgrades.attackBonus || 0) * 0.15 : 0)
 
-    var finalAtk = Math.max(10, Math.floor((baseAtk + statAtk) * weaponMult * demonRankMult * relicMult))
+    var finalAtk = Math.max(10, Math.floor((baseAtk + statAtk) * weaponMult * demonRankMult * relicMult * reincMult))
     return finalAtk
 }
 
 function getPlayerMaxHp() {
+    var propMult = (gameData.currentProperty && gameData.currentProperty.getEffect) ? Math.min(8, gameData.currentProperty.getEffect()) : 1.0
+    var relicMult = 1 + (gameData.tower && gameData.tower.upgrades ? (gameData.tower.upgrades.hpBonus || 0) * 0.20 : 0)
+    var reincMult = Math.min(5.0, 1 + (((gameData && gameData.reincarnationMultiplier) ? gameData.reincarnationMultiplier : 1) - 1) * 0.5)
+
+    if (gameData && gameData.world === 'modern') {
+        var baseHp = 150
+        var fit = gameData.taskData["Fitness"]
+        var cod = gameData.taskData["Coding"]
+
+        var statHp = (fit ? fit.level * 25 : 0) +
+                     (cod ? cod.level * 12 : 0)
+
+        var finalHp = Math.max(120, Math.floor((baseHp + statHp) * propMult * relicMult * reincMult))
+        return finalHp
+    }
+
     var baseHp = 120
     var str = gameData.taskData["Strength"]
     var mm = gameData.taskData["Muscle memory"]
@@ -1434,10 +1653,7 @@ function getPlayerMaxHp() {
                  (im ? im.level * 25 : 0) +
                  (sim ? sim.level * 80 : 0)
 
-    var propMult = (gameData.currentProperty && gameData.currentProperty.getEffect) ? Math.min(8, gameData.currentProperty.getEffect()) : 1.0
-    var relicMult = 1 + (gameData.tower && gameData.tower.upgrades ? (gameData.tower.upgrades.hpBonus || 0) * 0.20 : 0)
-
-    var finalHp = Math.max(100, Math.floor((baseHp + statHp) * propMult * relicMult))
+    var finalHp = Math.max(100, Math.floor((baseHp + statHp) * propMult * relicMult * reincMult))
     return finalHp
 }
 
@@ -1450,12 +1666,22 @@ function getTowerEnemy(floor) {
     var enemyAtk = isBoss ? Math.floor(baseAtk * 1.7) : baseAtk
 
     var name = ""
-    if (isBoss) {
-        var bossIdx = Math.floor(floor / 10) - 1
-        name = "👑 " + towerBossNames[bossIdx % towerBossNames.length] + " (Boss)"
+    if (gameData && gameData.world === 'modern') {
+        if (isBoss) {
+            var bossIdx = Math.floor(floor / 10) - 1
+            name = "👑 " + modernBossNames[bossIdx % modernBossNames.length] + " (Boss)"
+        } else {
+            var mobIdx = (floor - 1) % modernMobNames.length
+            name = modernMobNames[mobIdx]
+        }
     } else {
-        var mobIdx = (floor - 1) % towerMobNames.length
-        name = towerMobNames[mobIdx]
+        if (isBoss) {
+            var bossIdx = Math.floor(floor / 10) - 1
+            name = "👑 " + towerBossNames[bossIdx % towerBossNames.length] + " (Boss)"
+        } else {
+            var mobIdx = (floor - 1) % towerMobNames.length
+            name = towerMobNames[mobIdx]
+        }
     }
 
     return {
@@ -1546,9 +1772,13 @@ function climbTowerFloor(isAuto) {
         }
 
         if (logBox) {
-            var lootText = "<span style='color: #fde047; font-weight: 700;'>+" + formatCoinsString(goldReward) + "</span>, <span style='color: #60a5fa;'>+" + xpReward.toLocaleString() + " XP</span>"
+            var isModern = (gameData && gameData.world === 'modern')
+            var moneyText = isModern ? "<span style='color: #22d3ee; font-weight: 700;'>+" + goldReward.toLocaleString() + " Credits</span>"
+                                     : "<span style='color: #fde047; font-weight: 700;'>+" + formatCoinsString(goldReward) + "</span>"
+            var tokenLabel = isModern ? "💠 Data Shards" : "🪙 Tokens"
+            var lootText = moneyText + ", <span style='color: #60a5fa;'>+" + xpReward.toLocaleString() + " XP</span>"
             if (tokenReward > 0) {
-                lootText += ", <span style='color: #fef08a; font-weight: 800;'>+" + tokenReward + " 🪙 Tokens</span>"
+                lootText += ", <span style='color: #fef08a; font-weight: 800;'>+" + tokenReward + " " + tokenLabel + "</span>"
             }
             logBox.innerHTML = "<span style='color: #4ade80; font-weight: 700;'>⚔️ Victory on Floor " + floor + "!</span> " +
                 "Defeated " + enemy.name + " (" + rounds + " round" + (rounds > 1 ? "s" : "") + ", Took " + damageTaken.toLocaleString() + " dmg). " +
@@ -1632,6 +1862,16 @@ function updateTowerUI() {
     var enemy = getTowerEnemy(floor)
     var playerHp = getPlayerMaxHp()
     var playerAtk = getPlayerAttack()
+
+    var towerTitle = document.getElementById("towerTitleText")
+    var towerTokenLabel = document.getElementById("towerTokenLabel")
+    if (gameData && gameData.world === 'modern') {
+        if (towerTitle) towerTitle.textContent = "🌆 The Cyber Tower (The Digital Abyss)"
+        if (towerTokenLabel) towerTokenLabel.textContent = "💠 Data Shards:"
+    } else {
+        if (towerTitle) towerTitle.textContent = "🗼 The Infinite Tower (Tower Hunter)"
+        if (towerTokenLabel) towerTokenLabel.textContent = "🪙 Tokens:"
+    }
 
     var cfElem = document.getElementById("towerCurrentFloorDisplay")
     if (cfElem) cfElem.textContent = "Floor " + floor
@@ -1748,14 +1988,18 @@ function updateTowerUI() {
 }
 
 function assignMethods() {
+    var worldData = getWorldData()
     for (key in gameData.taskData) {
         var task = gameData.taskData[key]
-        if (jobBaseData[task.name]) {
-            task.baseData = jobBaseData[task.name]
-            task = Object.assign(new Job(jobBaseData[task.name]), task)
-        } else if (skillBaseData[task.name]) {
-            task.baseData = skillBaseData[task.name]
-            task = Object.assign(new Skill(skillBaseData[task.name]), task)
+        var jData = (worldData.jobBaseData && worldData.jobBaseData[task.name]) || jobBaseData[task.name] || modernJobBaseData[task.name]
+        var sData = (worldData.skillBaseData && worldData.skillBaseData[task.name]) || skillBaseData[task.name] || modernSkillBaseData[task.name]
+
+        if (jData) {
+            task.baseData = jData
+            task = Object.assign(new Job(jData), task)
+        } else if (sData) {
+            task.baseData = sData
+            task = Object.assign(new Skill(sData), task)
         } 
         gameData.taskData[key] = task
     }
@@ -1784,7 +2028,7 @@ function assignMethods() {
             requirement = Object.assign(new CompoundRequirement(requirement.elements, requirement.requirements), requirement)
         }
 
-        var tempRequirement = tempData["requirements"][key]
+        var tempRequirement = tempData["requirements"] ? tempData["requirements"][key] : null
         if (tempRequirement) {
             requirement.elements = tempRequirement.elements
             requirement.requirements = tempRequirement.requirements
@@ -1795,13 +2039,13 @@ function assignMethods() {
     if (gameData.currentJob && gameData.taskData[gameData.currentJob.name]) {
         gameData.currentJob = gameData.taskData[gameData.currentJob.name]
     } else {
-        gameData.currentJob = gameData.taskData["Beggar"]
+        gameData.currentJob = (gameData.world === 'modern') ? gameData.taskData["Student"] : gameData.taskData["Beggar"]
     }
 
     if (gameData.currentSkill && gameData.taskData[gameData.currentSkill.name]) {
         gameData.currentSkill = gameData.taskData[gameData.currentSkill.name]
     } else {
-        gameData.currentSkill = gameData.taskData["Concentration"]
+        gameData.currentSkill = (gameData.world === 'modern') ? gameData.taskData["Fitness"] : gameData.taskData["Concentration"]
     }
 
     if (gameData.currentProperty && gameData.itemData[gameData.currentProperty.name]) {
@@ -1843,6 +2087,110 @@ function saveGameData() {
     localStorage.setItem("gameDataSave", JSON.stringify(gameData))
 }
 
+function renderWorldTables() {
+    var worldData = getWorldData()
+    var jobTable = document.getElementById("jobTable")
+    var skillTable = document.getElementById("skillTable")
+
+    if (jobTable) {
+        jobTable.innerHTML = ""
+        createAllRows(worldData.jobCategories, "jobTable")
+    }
+    if (skillTable) {
+        skillTable.innerHTML = ""
+        createAllRows(worldData.skillCategories, "skillTable")
+    }
+}
+
+function initWorldRequirements() {
+    if (gameData && gameData.world === 'modern') {
+        var modernReqs = {
+            "Corporate & Tech": new TaskRequirement(getElementsByClass("Corporate & Tech"), []),
+            "Modern Skills": new TaskRequirement(getElementsByClass("Modern Skills"), []),
+            "Student": new TaskRequirement([getTaskElement("Student")], []),
+            "Fast Food Worker": new TaskRequirement([getTaskElement("Fast Food Worker")], [{task: "Student", requirement: 10}]),
+            "Office Worker": new TaskRequirement([getTaskElement("Office Worker")], [{task: "Fast Food Worker", requirement: 10}, {task: "Coding", requirement: 5}]),
+            "Banker": new TaskRequirement([getTaskElement("Banker")], [{task: "Office Worker", requirement: 10}, {task: "Finance", requirement: 10}]),
+            "CEO": new TaskRequirement([getTaskElement("CEO")], [{task: "Banker", requirement: 10}, {task: "Finance", requirement: 40}]),
+            "Tech Billionaire": new TaskRequirement([getTaskElement("Tech Billionaire")], [{task: "CEO", requirement: 10}, {task: "Coding", requirement: 60}, {task: "Hacking", requirement: 30}]),
+            "Fitness": new TaskRequirement([getTaskElement("Fitness")], []),
+            "Coding": new TaskRequirement([getTaskElement("Coding")], [{task: "Student", requirement: 5}]),
+            "Finance": new TaskRequirement([getTaskElement("Finance")], [{task: "Student", requirement: 10}]),
+            "Hacking": new TaskRequirement([getTaskElement("Hacking")], [{task: "Coding", requirement: 25}])
+        }
+        for (var k in modernReqs) {
+            gameData.requirements[k] = modernReqs[k]
+            if (tempData["requirements"]) tempData["requirements"][k] = modernReqs[k]
+        }
+    }
+}
+
+function setupWorld() {
+    if (!gameData.world) gameData.world = 'fantasy'
+    var isModern = (gameData.world === 'modern')
+
+    if (isModern) {
+        document.body.classList.add("modern-world")
+    } else {
+        document.body.classList.remove("modern-world")
+    }
+
+    var appTitle = document.getElementById("appTitle")
+    var appSubtitle = document.getElementById("appSubtitle")
+    var prestigeTitle = document.getElementById("prestigeTitleText")
+    var towerTitle = document.getElementById("towerTitleText")
+    var towerTokenLabel = document.getElementById("towerTokenLabel")
+
+    if (isModern) {
+        if (appTitle) appTitle.textContent = "🌆 Cyber Knight - Modern World"
+        if (appSubtitle) appSubtitle.textContent = "⚡ Dimension II • Cyberpunk Era (x" + (gameData.reincarnationMultiplier || 5).toFixed(1) + " Global Boost)"
+        if (prestigeTitle) prestigeTitle.textContent = "✦ Data Points"
+        if (towerTitle) towerTitle.textContent = "🌆 The Cyber Tower (The Digital Abyss)"
+        if (towerTokenLabel) towerTokenLabel.textContent = "💠 Data Shards:"
+    } else {
+        if (appTitle) appTitle.textContent = "⚔️ Progress Knight - Fantasy"
+        if (appSubtitle) appSubtitle.textContent = "⚡ Turbo Mod (5x Speed • Mage Class • Prestige)"
+        if (prestigeTitle) prestigeTitle.textContent = "✦ Prestige Points"
+        if (towerTitle) towerTitle.textContent = "🗼 The Infinite Tower (Tower Hunter)"
+        if (towerTokenLabel) towerTokenLabel.textContent = "🪙 Tokens:"
+    }
+
+    if (isModern) {
+        createData(gameData.taskData, modernJobBaseData)
+        createData(gameData.taskData, modernSkillBaseData)
+    }
+
+    renderWorldTables()
+    initWorldRequirements()
+    assignMethods()
+    setCustomEffects()
+    addMultipliers()
+}
+
+function reincarnateToModern() {
+    var archmage = gameData.taskData["Archmage"]
+    var archmageLvl = archmage ? archmage.level : 0
+    if (archmageLvl < 1000) {
+        alert("You must reach Archmage Level 1000 before you can pierce the dimensional barrier!")
+        return
+    }
+
+    var confirmed = confirm("Warning: Reincarnation will completely reset your current Fantasy World progress. Are you ready for a new dimension?")
+    if (!confirmed) return
+
+    gameData.world = 'modern'
+    gameData.reincarnationMultiplier = (gameData.reincarnationMultiplier || 1) * 5.0
+    gameData.reincarnationCount = (gameData.reincarnationCount || 0) + 1
+
+    rebirthReset()
+    gameData.days = 365 * 15
+
+    setupWorld()
+    saveGameData()
+
+    alert("Welcome to the Modern World! The Tower exists here too...")
+}
+
 function loadGameData() {
     var gameDataSave = JSON.parse(localStorage.getItem("gameDataSave"))
 
@@ -1859,22 +2207,24 @@ function loadGameData() {
     if (gameData.merchantsBlessing === undefined) gameData.merchantsBlessing = false
     if (gameData.autoJob === undefined) gameData.autoJob = null
     if (gameData.autoSkill === undefined) gameData.autoSkill = null
+    if (gameData.world === undefined) gameData.world = 'fantasy'
+    if (gameData.reincarnationMultiplier === undefined) gameData.reincarnationMultiplier = 1
+    if (gameData.reincarnationCount === undefined) gameData.reincarnationCount = 0
 
     initTowerData()
 
-    assignMethods()
-    setCustomEffects()
-    addMultipliers()
+    setupWorld()
 }
 
 function updateUI() {
+    var worldData = getWorldData()
     updateTaskRows()
     updateItemRows()
-    updateRequiredRows(gameData.taskData, jobCategories)
-    updateRequiredRows(gameData.taskData, skillCategories)
+    updateRequiredRows(gameData.taskData, worldData.jobCategories)
+    updateRequiredRows(gameData.taskData, worldData.skillCategories)
     updateRequiredRows(gameData.itemData, itemCategories)
-    updateHeaderRows(jobCategories)
-    updateHeaderRows(skillCategories)
+    updateHeaderRows(worldData.jobCategories)
+    updateHeaderRows(worldData.skillCategories)
     updateQuickTaskDisplay("job")
     updateQuickTaskDisplay("skill")
     hideEntities()
@@ -1920,6 +2270,8 @@ createAllRows(itemCategories, "itemTable")
 
 createData(gameData.taskData, jobBaseData)
 createData(gameData.taskData, skillBaseData)
+createData(gameData.taskData, modernJobBaseData)
+createData(gameData.taskData, modernSkillBaseData)
 createData(gameData.itemData, itemBaseData) 
 
 gameData.currentJob = gameData.taskData["Beggar"]

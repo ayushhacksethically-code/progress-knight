@@ -960,3 +960,55 @@ input[type="checkbox"] {
     color: #64748b;
     cursor: not-allowed;
 }
+
+/* ==========================================================================
+   Modern World (Cyber / Sci-Fi Theme)
+   ========================================================================== */
+body.modern-world {
+    background: radial-gradient(circle at 50% 0%, #0c1829 0%, #050811 100%) !important;
+}
+
+body.modern-world .app-header {
+    border-bottom: 1px solid rgba(6, 182, 212, 0.3) !important;
+    background: rgba(8, 14, 28, 0.85) !important;
+    box-shadow: 0 4px 20px rgba(6, 182, 212, 0.1) !important;
+}
+
+body.modern-world .app-title {
+    background: linear-gradient(135deg, #22d3ee 0%, #a855f7 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    text-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+}
+
+body.modern-world .mod-badge {
+    background: rgba(6, 182, 212, 0.15) !important;
+    color: #22d3ee !important;
+    border: 1px solid rgba(6, 182, 212, 0.4) !important;
+}
+
+body.modern-world .sidebar-card,
+body.modern-world .content-card {
+    border-color: rgba(6, 182, 212, 0.25) !important;
+    box-shadow: 0 4px 16px rgba(6, 182, 212, 0.05) !important;
+}
+
+body.modern-world .prestige-card {
+    border-color: rgba(168, 85, 247, 0.4) !important;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(6, 182, 212, 0.08) 100%) !important;
+}
+
+body.modern-world .tower-header-card {
+    background: linear-gradient(135deg, #091a2e 0%, #150d2a 100%) !important;
+    border-color: #06b6d4 !important;
+    box-shadow: 0 0 25px rgba(6, 182, 212, 0.2) !important;
+}
+
+body.modern-world .tower-floor-number {
+    color: #22d3ee !important;
+    text-shadow: 0 0 15px rgba(34, 211, 238, 0.6) !important;
+}
+
+body.modern-world .tower-card {
+    border-color: rgba(6, 182, 212, 0.3) !important;
+}
