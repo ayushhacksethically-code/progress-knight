@@ -58,6 +58,14 @@ const jobBaseData = {
     "Wizard": {name: "Wizard", maxXp: 3000, income: 450},
     "Archmage": {name: "Archmage", maxXp: 35000, income: 4000},
 
+    // New Class: Demon
+    "Demon Initiate": {name: "Demon Initiate", maxXp: 400, income: 90},
+    "Infernal Fiend": {name: "Infernal Fiend", maxXp: 2500, income: 600},
+    "Dread Knight": {name: "Dread Knight", maxXp: 20000, income: 4500},
+    "Abyssal Ravager": {name: "Abyssal Ravager", maxXp: 180000, income: 35000},
+    "Infernal Commander": {name: "Infernal Commander", maxXp: 2000000, income: 300000},
+    "Demon Overlord": {name: "Demon Overlord", maxXp: 30000000, income: 3000000},
+
     "Student": {name: "Student", maxXp: 100000, income: 100},
     "Apprentice mage": {name: "Apprentice mage", maxXp: 1000000, income: 1000},
     "Mage": {name: "Mage", maxXp: 10000000, income: 7500},
@@ -118,6 +126,7 @@ const jobCategories = {
     "Common work": ["Beggar", "Farmer", "Fisherman", "Miner", "Blacksmith", "Merchant"],
     "Military" : ["Squire", "Footman", "Veteran footman", "Knight", "Veteran knight", "Elite knight", "Holy knight", "Legendary knight"],
     "Mage": ["Apprentice", "Wizard", "Archmage"],
+    "Demon": ["Demon Initiate", "Infernal Fiend", "Dread Knight", "Abyssal Ravager", "Infernal Commander", "Demon Overlord"],
     "The Arcane Association" : ["Student", "Apprentice mage", "Mage", "Grand wizard", "Master wizard", "Chairman"],
     "Mythical / Overlord": ["Trade Prince", "Shadow Broker", "Midas"]
 }
@@ -138,6 +147,7 @@ const categoryAccentColors = {
     "Common work": "#3b82f6",
     "Military": "#f43f5e",
     "Mage": "#a855f7",
+    "Demon": "#ef4444",
     "The Arcane Association": "#c084fc",
     "Mythical / Overlord": "#f59e0b",
     "Fundamentals": "#64748b",
@@ -170,6 +180,13 @@ const tooltips = {
     "Apprentice": "Channel your internal mana through basic spell incantations. Generous pay for an eager student of the arcane arts.",
     "Wizard": "Wield destructive arcane spells and unravel cosmic mysteries. Revered and richly compensated by kingdoms far and wide.",
     "Archmage": "Master of elemental forces, space, and reality. An apex spellcaster who commands immense fortunes and celestial power.",
+
+    "Demon Initiate": "Offer your service to dark deities and perform unholy rituals in exchange for forbidden demonic coins.",
+    "Infernal Fiend": "Wield hellfire and unleash havoc upon the mortal realm as an aggressive fiendish operative.",
+    "Dread Knight": "Don the cursed plate armor soaked in abyssal flames to vanquish heavenly and mortal battalions.",
+    "Abyssal Ravager": "Channel pure chaotic darkness from the Abyss to tear through dimensional rifts and claim dark spoils.",
+    "Infernal Commander": "Lead vast infernal legions across battlefronts, ruling over countless demonic fiends.",
+    "Demon Overlord": "A supreme demonic conqueror whose mere presence corrupts continents and commands unmatched infernal tribute.",
 
     "Student": "Study the theory of mana and practice basic spells. There is minor pay to cover living costs, however, this is a necessary stage in becoming a mage.",
     "Apprentice mage": "Under the supervision of a mage, perform basic spells against enemies in battle. Generous pay will be provided to cover living costs.",
@@ -464,6 +481,13 @@ function addMultipliers() {
                 var mc = gameData.taskData["Mana control"]
                 return 1 + (mc ? mc.level * 0.08 : 0)
             })
+        } else if (jobCategories["Demon"] && jobCategories["Demon"].includes(task.name)) {
+            task.incomeMultipliers.push(getBindedTaskEffect("Demon's wealth"))
+            task.incomeMultipliers.push(getBindedTaskEffect("Evil control"))
+            task.xpMultipliers.push(getBindedTaskEffect("Dark influence"))
+            task.xpMultipliers.push(getBindedTaskEffect("Demon training"))
+            task.incomeMultipliers.push(getDemonRankMultiplier)
+            task.xpMultipliers.push(getDemonRankMultiplier)
         } else if (task.name == "Strength") {
             task.xpMultipliers.push(getBindedTaskEffect("Muscle memory"))
             task.xpMultipliers.push(getBindedItemEffect("Dumbbells"))
@@ -1473,6 +1497,7 @@ gameData.requirements = {
     "Mage class": new TaskRequirement(getElementsByClass("Mage"), [{task: "Concentration", requirement: 15}, {task: "Meditation", requirement: 15}]),
     "Magic skilltree": new TaskRequirement(getElementsByClass("Magic"), [{task: "Concentration", requirement: 15}, {task: "Meditation", requirement: 15}]),
     "The Arcane Association": new TaskRequirement(getElementsByClass("The Arcane Association"), [{task: "Concentration", requirement: 200}, {task: "Meditation", requirement: 200}]),
+    "Demon": new EvilRequirement(getElementsByClass("Demon"), [{requirement: 1}]),
     "Dark magic": new EvilRequirement(getElementsByClass("Dark magic"), [{requirement: 1}]),
     "Shop": new CoinRequirement([document.getElementById("shopTabButton")], [{requirement: gameData.itemData["Tent"].getExpense() * 50}]),
     "Rebirth tab": new AgeRequirement([document.getElementById("rebirthTabButton")], [{requirement: 25}]),
@@ -1511,6 +1536,14 @@ gameData.requirements = {
     "Apprentice": new TaskRequirement([getTaskElement("Apprentice")], [{task: "Concentration", requirement: 15}, {task: "Meditation", requirement: 15}]),
     "Wizard": new TaskRequirement([getTaskElement("Wizard")], [{task: "Mana control", requirement: 15}, {task: "Apprentice", requirement: 10}]),
     "Archmage": new TaskRequirement([getTaskElement("Archmage")], [{task: "Spellcraft", requirement: 20}, {task: "Wizard", requirement: 15}]),
+
+    // Demon Class Jobs
+    "Demon Initiate": new EvilRequirement([getTaskElement("Demon Initiate")], [{requirement: 1}]),
+    "Infernal Fiend": new TaskRequirement([getTaskElement("Infernal Fiend")], [{task: "Demon Initiate", requirement: 10}, {task: "Dark influence", requirement: 5}]),
+    "Dread Knight": new TaskRequirement([getTaskElement("Dread Knight")], [{task: "Infernal Fiend", requirement: 15}, {task: "Strength", requirement: 50}]),
+    "Abyssal Ravager": new TaskRequirement([getTaskElement("Abyssal Ravager")], [{task: "Dread Knight", requirement: 20}, {task: "Demon training", requirement: 10}]),
+    "Infernal Commander": new TaskRequirement([getTaskElement("Infernal Commander")], [{task: "Abyssal Ravager", requirement: 25}, {task: "Battle tactics", requirement: 150}]),
+    "Demon Overlord": new TaskRequirement([getTaskElement("Demon Overlord")], [{task: "Infernal Commander", requirement: 30}, {task: "Evil control", requirement: 25}]),
 
     // The Arcane Association Jobs
     "Student": new TaskRequirement([getTaskElement("Student")], [{task: "Concentration", requirement: 200}, {task: "Meditation", requirement: 200}]),
