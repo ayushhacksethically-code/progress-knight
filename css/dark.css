@@ -698,3 +698,265 @@ input[type="checkbox"] {
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
     overflow-x: auto;
 }
+
+/* ========================================================
+   INFINITE TOWER (TOWER HUNTER) STYLES
+   ======================================================== */
+
+.tower-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+}
+
+.tower-header-card {
+    background: linear-gradient(135deg, rgba(30, 27, 75, 0.85), rgba(15, 23, 42, 0.95));
+    border: 1px solid #4338ca;
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 0 24px rgba(79, 70, 229, 0.2);
+}
+
+.tower-floor-display {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.tower-floor-number {
+    font-size: 28px;
+    font-weight: 800;
+    color: #a5b4fc;
+    text-shadow: 0 0 16px rgba(129, 140, 248, 0.8), 0 0 30px rgba(99, 102, 241, 0.4);
+    letter-spacing: 0.5px;
+}
+
+.tower-record-badge {
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+    background: rgba(15, 23, 42, 0.7);
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid #312e81;
+}
+
+.tower-token-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fef08a;
+    background: linear-gradient(135deg, rgba(161, 98, 7, 0.3), rgba(113, 63, 18, 0.4));
+    border: 1px solid #eab308;
+    padding: 6px 14px;
+    border-radius: 8px;
+    box-shadow: 0 0 12px rgba(234, 179, 8, 0.2);
+}
+
+.tower-arena {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 16px;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .tower-arena {
+        grid-template-columns: 1fr;
+    }
+}
+
+.tower-combatant-card {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.8));
+    border: 1px solid var(--border-card);
+    border-radius: 12px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.tower-combatant-card.player {
+    border-color: #3b82f6;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+}
+
+.tower-combatant-card.enemy {
+    border-color: #ef4444;
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
+}
+
+.tower-combatant-card.boss {
+    border-color: #f59e0b;
+    box-shadow: 0 0 28px rgba(245, 158, 11, 0.35);
+    background: linear-gradient(135deg, rgba(30, 27, 75, 0.95), rgba(69, 10, 10, 0.85));
+}
+
+.tower-hp-track {
+    width: 100%;
+    height: 12px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 8px 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tower-hp-fill-player {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981, #06b6d4);
+    border-radius: 6px;
+    transition: width 0.2s ease;
+}
+
+.tower-hp-fill-enemy {
+    height: 100%;
+    background: linear-gradient(90deg, #ef4444, #f97316);
+    border-radius: 6px;
+    transition: width 0.2s ease;
+}
+
+.tower-vs-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 0 8px;
+}
+
+.tower-vs-badge {
+    font-size: 16px;
+    font-weight: 900;
+    color: #cbd5e1;
+    background: rgba(30, 41, 59, 0.9);
+    padding: 8px 12px;
+    border-radius: 50%;
+    border: 1px solid #475569;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
+}
+
+.tower-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.tower-btn-fight {
+    flex: 2;
+    min-width: 160px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 800;
+    color: #ffffff;
+    background: linear-gradient(135deg, #4f46e5, #4338ca);
+    border: 1px solid #6366f1;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 0 16px rgba(79, 70, 229, 0.4);
+    transition: all 0.2s ease;
+}
+
+.tower-btn-fight:hover {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    transform: translateY(-1px);
+    box-shadow: 0 0 22px rgba(99, 102, 241, 0.6);
+}
+
+.tower-btn-auto {
+    flex: 1;
+    min-width: 140px;
+    padding: 12px 18px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #e2e8f0;
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid #475569;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tower-btn-auto.active {
+    background: linear-gradient(135deg, #059669, #047857) !important;
+    border-color: #34d399 !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 18px rgba(16, 185, 129, 0.6) !important;
+    animation: towerPulse 1.8s infinite;
+}
+
+@keyframes towerPulse {
+    0% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.4); }
+    50% { box-shadow: 0 0 24px rgba(16, 185, 129, 0.85); }
+    100% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.4); }
+}
+
+.tower-log-box {
+    background: rgba(11, 14, 20, 0.8);
+    border: 1px solid var(--border-card);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #cbd5e1;
+    min-height: 48px;
+}
+
+.tower-shop-section {
+    background: linear-gradient(135deg, rgba(17, 24, 39, 0.9), rgba(30, 27, 75, 0.4));
+    border: 1px solid #3730a3;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.tower-shop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+
+.tower-upgrade-card {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid #312e81;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.tower-upgrade-card:hover {
+    border-color: #6366f1;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25);
+}
+
+.tower-upgrade-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #ffffff;
+    background: linear-gradient(135deg, #4f46e5, #3730a3);
+    border: 1px solid #6366f1;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tower-upgrade-btn:disabled {
+    background: #1e293b;
+    border-color: #334155;
+    color: #64748b;
+    cursor: not-allowed;
+}

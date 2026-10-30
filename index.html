@@ -212,6 +212,7 @@
                     <button class="tabButton" onClick="setTab(this, 'skills')">📜 Skills</button>
                     <button class="tabButton" id="shopTabButton" onClick="setTab(this, 'shop')">🛒 Shop</button>
                     <button class="tabButton" id="rebirthTabButton" onClick="setTab(this, 'rebirth')">🧿 Amulet</button>
+                    <button class="tabButton" id="towerTabButton" onClick="setTab(this, 'tower')">🗼 Tower</button>
                     <button class="tabButton tab-settings-push" onClick="setTab(this, 'settings')">⚙️ Settings</button>
                 </nav>
 
@@ -363,6 +364,186 @@
                                 <button class="pause-btn" style="width: auto; margin-top: 12px; background: #dc2626 !important;" onClick="rebirthTwo()">Embrace Evil</button>
                             </li>
                         </ul>
+                    </div>
+
+                    <!-- The Infinite Tower Tab -->
+                    <div class="tab" id="tower" style="display: none;">
+                        <div class="tower-wrapper">
+                            <!-- Floor & Record Header -->
+                            <div class="tower-header-card">
+                                <div>
+                                    <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #818cf8; letter-spacing: 1px; margin-bottom: 2px;">
+                                        🗼 The Infinite Tower (Tower Hunter)
+                                    </div>
+                                    <div class="tower-floor-display">
+                                        <div class="tower-floor-number" id="towerCurrentFloorDisplay">Floor 1</div>
+                                        <div class="tower-record-badge">
+                                            Highest: <span id="towerHighestFloorDisplay" style="color: #c7d2fe; font-weight: 700;">Floor 1</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="tower-token-badge">
+                                        <span>🪙 Tokens:</span>
+                                        <span id="towerTokensDisplay">0</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Defeat Warning Banner (hidden by default) -->
+                            <div id="towerDefeatBanner" style="display: none; background: linear-gradient(135deg, rgba(153, 27, 27, 0.9), rgba(69, 10, 10, 0.9)); border: 1px solid #ef4444; border-radius: 8px; padding: 12px 16px; color: #fecaca; font-size: 13px; font-weight: 600; text-align: center;">
+                                ⚠️ You have been defeated on Floor <span id="towerDefeatFloor">X</span>! Go train your skills and return!
+                            </div>
+
+                            <!-- Combat Arena Grid -->
+                            <div class="tower-arena">
+                                <!-- Player Card -->
+                                <div class="tower-combatant-card player">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                        <span style="font-size: 11px; font-weight: 700; color: #60a5fa; text-transform: uppercase; letter-spacing: 0.5px;">Challenger</span>
+                                        <span id="towerPlayerTitle" style="font-size: 11px; color: #94a3b8; font-weight: 600;">Adventurer</span>
+                                    </div>
+                                    <div style="font-size: 16px; font-weight: 800; color: #f8fafc; margin-bottom: 4px;">You</div>
+                                    
+                                    <div style="display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8;">
+                                        <span>Health</span>
+                                        <span id="towerPlayerHpText" style="font-weight: 700; color: #34d399;">120 / 120</span>
+                                    </div>
+                                    <div class="tower-hp-track">
+                                        <div id="towerPlayerHpFill" class="tower-hp-fill-player" style="width: 100%;"></div>
+                                    </div>
+
+                                    <div style="display: flex; justify-content: space-between; font-size: 12px; margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(59, 130, 246, 0.3);">
+                                        <span style="color: #94a3b8;">Attack Power:</span>
+                                        <span id="towerPlayerAttackText" style="color: #38bdf8; font-weight: 700;">⚔️ 25</span>
+                                    </div>
+                                </div>
+
+                                <!-- VS Divider -->
+                                <div class="tower-vs-col">
+                                    <div class="tower-vs-badge">VS</div>
+                                    <span id="towerFloorTypeBadge" style="font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; background: #312e81; color: #c7d2fe; border: 1px solid #4338ca;">Normal</span>
+                                </div>
+
+                                <!-- Enemy Card -->
+                                <div id="towerEnemyCard" class="tower-combatant-card enemy">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                        <span style="font-size: 11px; font-weight: 700; color: #f87171; text-transform: uppercase; letter-spacing: 0.5px;">Tower Guardian</span>
+                                        <span id="towerEnemyFloorBadge" style="font-size: 11px; color: #fca5a5; font-weight: 600;">Floor 1</span>
+                                    </div>
+                                    <div id="towerEnemyName" style="font-size: 16px; font-weight: 800; color: #ffedd5; margin-bottom: 4px;">Dungeon Skeleton</div>
+
+                                    <div style="display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8;">
+                                        <span>Enemy HP</span>
+                                        <span id="towerEnemyHpText" style="font-weight: 700; color: #f87171;">100 / 100</span>
+                                    </div>
+                                    <div class="tower-hp-track">
+                                        <div id="towerEnemyHpFill" class="tower-hp-fill-enemy" style="width: 100%;"></div>
+                                    </div>
+
+                                    <div style="display: flex; justify-content: space-between; font-size: 12px; margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(239, 68, 68, 0.3);">
+                                        <span style="color: #94a3b8;">Enemy Attack:</span>
+                                        <span id="towerEnemyAttackText" style="color: #f87171; font-weight: 700;">⚔️ 8</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Controls -->
+                            <div class="tower-controls">
+                                <button class="tower-btn-fight" onClick="climbTowerFloor(false)">
+                                    ⚔️ Climb Floor (Fight)
+                                </button>
+                                <button id="towerAutoClimbBtn" class="tower-btn-auto" onClick="toggleAutoClimb()">
+                                    ⚡ Auto-Climb: OFF
+                                </button>
+                                <button class="pause-btn" style="width: auto; padding: 12px 16px; background: rgba(30, 41, 59, 0.8);" onClick="retreatTowerFloor(1)" title="Go down 1 floor">
+                                    ⏮️ -1 Floor
+                                </button>
+                                <button class="pause-btn" style="width: auto; padding: 12px 16px; background: rgba(30, 41, 59, 0.8);" onClick="advanceToHighestFloor()" title="Jump to highest floor reached">
+                                    ⏭️ Top Floor
+                                </button>
+                            </div>
+
+                            <!-- Battle Log -->
+                            <div class="tower-log-box" id="towerLogBox">
+                                Tower awaits your ascent. Climb floor 1 to begin harvesting gold, XP, and boss relics!
+                            </div>
+
+                            <!-- Tower Relics Shop -->
+                            <div class="tower-shop-section">
+                                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #312e81; padding-bottom: 8px;">
+                                    <div>
+                                        <div style="font-size: 14px; font-weight: 800; color: #e0e7ff;">🪙 Tower Relics Shop</div>
+                                        <div style="font-size: 11px; color: #94a3b8;">Defeat Bosses on every 10th floor to harvest Tower Tokens and buy permanent relics!</div>
+                                    </div>
+                                    <div class="tower-token-badge">
+                                        Tokens: <span id="towerShopTokensDisplay">0</span>
+                                    </div>
+                                </div>
+
+                                <div class="tower-shop-grid">
+                                    <!-- Upgrade 1 -->
+                                    <div class="tower-upgrade-card">
+                                        <div>
+                                            <div style="font-size: 13px; font-weight: 700; color: #a5b4fc;">⚔️ Rune of Destruction</div>
+                                            <div style="font-size: 11px; color: #94a3b8; margin: 4px 0;">+15% Base Attack Power across all floors.</div>
+                                            <div style="font-size: 10px; color: #818cf8;">Level: <span id="towerUpAtkLvl">0</span> (+<span id="towerUpAtkPct">0</span>%)</div>
+                                        </div>
+                                        <button class="tower-upgrade-btn" id="towerBuyAtkBtn" onClick="buyTowerUpgrade('attackBonus')">
+                                            Buy (Cost: <span id="towerCostAtk">1</span> Tokens)
+                                        </button>
+                                    </div>
+
+                                    <!-- Upgrade 2 -->
+                                    <div class="tower-upgrade-card">
+                                        <div>
+                                            <div style="font-size: 13px; font-weight: 700; color: #34d399;">🛡️ Titan's Fortitude</div>
+                                            <div style="font-size: 11px; color: #94a3b8; margin: 4px 0;">+20% Max Health (HP) capacity.</div>
+                                            <div style="font-size: 10px; color: #10b981;">Level: <span id="towerUpHpLvl">0</span> (+<span id="towerUpHpPct">0</span>%)</div>
+                                        </div>
+                                        <button class="tower-upgrade-btn" id="towerBuyHpBtn" onClick="buyTowerUpgrade('hpBonus')">
+                                            Buy (Cost: <span id="towerCostHp">1</span> Tokens)
+                                        </button>
+                                    </div>
+
+                                    <!-- Upgrade 3 -->
+                                    <div class="tower-upgrade-card">
+                                        <div>
+                                            <div style="font-size: 13px; font-weight: 700; color: #fbbf24;">📜 Tower Lore Mastery</div>
+                                            <div style="font-size: 11px; color: #94a3b8; margin: 4px 0;">+15% Bonus Job & Skill XP from floor clears.</div>
+                                            <div style="font-size: 10px; color: #f59e0b;">Level: <span id="towerUpXpLvl">0</span> (+<span id="towerUpXpPct">0</span>%)</div>
+                                        </div>
+                                        <button class="tower-upgrade-btn" id="towerBuyXpBtn" onClick="buyTowerUpgrade('xpBonus')">
+                                            Buy (Cost: <span id="towerCostXp">2</span> Tokens)
+                                        </button>
+                                    </div>
+
+                                    <!-- Upgrade 4 -->
+                                    <div class="tower-upgrade-card">
+                                        <div>
+                                            <div style="font-size: 13px; font-weight: 700; color: #f472b6;">💰 Greed of the Abyss</div>
+                                            <div style="font-size: 11px; color: #94a3b8; margin: 4px 0;">+25% Extra Gold drops from defeated foes.</div>
+                                            <div style="font-size: 10px; color: #ec4899;">Level: <span id="towerUpGoldLvl">0</span> (+<span id="towerUpGoldPct">0</span>%)</div>
+                                        </div>
+                                        <button class="tower-upgrade-btn" id="towerBuyGoldBtn" onClick="buyTowerUpgrade('goldBonus')">
+                                            Buy (Cost: <span id="towerCostGold">2</span> Tokens)
+                                        </button>
+                                    </div>
+
+                                    <!-- Upgrade 5 -->
+                                    <div class="tower-upgrade-card">
+                                        <div>
+                                            <div style="font-size: 13px; font-weight: 700; color: #c084fc;">🌀 Dimensional Rift</div>
+                                            <div style="font-size: 11px; color: #94a3b8; margin: 4px 0;">Skip 5 Floors instantly and claim combined rewards!</div>
+                                            <div style="font-size: 10px; color: #a855f7;">Instant Warp (+5 Floors)</div>
+                                        </div>
+                                        <button class="tower-upgrade-btn" id="towerBuySkipBtn" onClick="skipFiveTowerFloors()">
+                                            Warp 5 Floors (Cost: 3 Tokens)
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="tab" id="settings">

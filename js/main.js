@@ -20,6 +20,19 @@ var gameData = {
     currentSkill: null,
     currentProperty: null,
     currentMisc: null,
+
+    tower: {
+        currentFloor: 1,
+        highestFloor: 1,
+        autoClimb: false,
+        tokens: 0,
+        upgrades: {
+            attackBonus: 0,
+            hpBonus: 0,
+            xpBonus: 0,
+            goldBonus: 0
+        }
+    },
 }
 
 var tempData = {}
@@ -1337,6 +1350,401 @@ function isAlive() {
     return condition
 }
 
+// ========================================================
+// THE INFINITE TOWER (TOWER HUNTER)
+// ========================================================
+
+const towerMobNames = [
+    "Dungeon Skeleton", "Crypt Goblin", "Corrupted Hound", "Abyssal Imp", 
+    "Shadow Stalker", "Infernal Fiend", "Dread Vanguard", "Crypt Wraith",
+    "Ironclad Golem", "Dark Sorcerer", "Abyssal Ravager", "Hell Knight",
+    "Void Weaver", "Blood Thrall", "Chaos Elemental", "Doom Sentinel"
+]
+
+const towerBossNames = [
+    "Gargoyle Sentinel", "Chimera of Despair", "Infernal Colossus", "Abyssal Lich Lord",
+    "Dragon of the Void", "Titan of Cataclysm", "Leviathan of the Deep", "Archon of Oblivion",
+    "Dark God Avatar", "The Primordial Destroyer"
+]
+
+function initTowerData() {
+    if (!gameData.tower) {
+        gameData.tower = {
+            currentFloor: 1,
+            highestFloor: 1,
+            autoClimb: false,
+            tokens: 0,
+            upgrades: {
+                attackBonus: 0,
+                hpBonus: 0,
+                xpBonus: 0,
+                goldBonus: 0
+            }
+        }
+    } else {
+        if (!gameData.tower.upgrades) {
+            gameData.tower.upgrades = { attackBonus: 0, hpBonus: 0, xpBonus: 0, goldBonus: 0 }
+        }
+        if (gameData.tower.currentFloor === undefined) gameData.tower.currentFloor = 1
+        if (gameData.tower.highestFloor === undefined) gameData.tower.highestFloor = 1
+        if (gameData.tower.tokens === undefined) gameData.tower.tokens = 0
+        if (gameData.tower.autoClimb === undefined) gameData.tower.autoClimb = false
+    }
+}
+
+function getPlayerAttack() {
+    var baseAtk = 15
+    var str = gameData.taskData["Strength"]
+    var mm = gameData.taskData["Muscle memory"]
+    var bt = gameData.taskData["Battle tactics"]
+    var mc = gameData.taskData["Mana control"]
+    var sc = gameData.taskData["Spellcraft"]
+    
+    var statAtk = (str ? str.level * 2.0 : 0) +
+                  (mm ? mm.level * 1.5 : 0) +
+                  (bt ? bt.level * 3.0 : 0) +
+                  (mc ? mc.level * 2.0 : 0) +
+                  (sc ? sc.level * 3.5 : 0)
+
+    var weaponMult = 1.0
+    if (gameData.currentMisc) {
+        for (var item of gameData.currentMisc) {
+            if (item && item.name === "Steel longsword") weaponMult += 0.5
+        }
+    }
+
+    var demonRankMult = (typeof getDemonRankMultiplier === "function") ? getDemonRankMultiplier() : 1.0
+    var relicMult = 1 + (gameData.tower && gameData.tower.upgrades ? (gameData.tower.upgrades.attackBonus || 0) * 0.15 : 0)
+
+    var finalAtk = Math.max(10, Math.floor((baseAtk + statAtk) * weaponMult * demonRankMult * relicMult))
+    return finalAtk
+}
+
+function getPlayerMaxHp() {
+    var baseHp = 120
+    var str = gameData.taskData["Strength"]
+    var mm = gameData.taskData["Muscle memory"]
+    var im = gameData.taskData["Immortality"]
+    var sim = gameData.taskData["Super immortality"]
+
+    var statHp = (str ? str.level * 12 : 0) +
+                 (mm ? mm.level * 10 : 0) +
+                 (im ? im.level * 20 : 0) +
+                 (sim ? sim.level * 60 : 0)
+
+    var propMult = (gameData.currentProperty && gameData.currentProperty.getEffect) ? Math.min(5, gameData.currentProperty.getEffect()) : 1.0
+    var relicMult = 1 + (gameData.tower && gameData.tower.upgrades ? (gameData.tower.upgrades.hpBonus || 0) * 0.20 : 0)
+
+    var finalHp = Math.max(100, Math.floor((baseHp + statHp) * propMult * relicMult))
+    return finalHp
+}
+
+function getTowerEnemy(floor) {
+    var isBoss = (floor % 10 === 0)
+    var baseHp = Math.floor(100 * Math.pow(1.15, floor - 1))
+    var baseAtk = Math.floor(8 * Math.pow(1.12, floor - 1))
+
+    var enemyHp = isBoss ? baseHp * 5 : baseHp
+    var enemyAtk = isBoss ? Math.floor(baseAtk * 2.0) : baseAtk
+
+    var name = ""
+    if (isBoss) {
+        var bossIdx = Math.floor(floor / 10) - 1
+        name = "👑 " + towerBossNames[bossIdx % towerBossNames.length] + " (Boss)"
+    } else {
+        var mobIdx = (floor - 1) % towerMobNames.length
+        name = towerMobNames[mobIdx]
+    }
+
+    return {
+        floor: floor,
+        name: name,
+        isBoss: isBoss,
+        maxHp: enemyHp,
+        hp: enemyHp,
+        attack: enemyAtk
+    }
+}
+
+function formatCoinsString(coins) {
+    if (coins <= 0) return "0c"
+    var p = Math.floor(coins / 1000000)
+    var g = Math.floor((coins % 1000000) / 10000)
+    var s = Math.floor((coins % 10000) / 100)
+    var c = Math.floor(coins % 100)
+    var res = []
+    if (p > 0) res.push(format(p) + "p")
+    if (g > 0) res.push(g + "g")
+    if (s > 0) res.push(s + "s")
+    if (c > 0 || res.length === 0) res.push(c + "c")
+    return res.join(" ")
+}
+
+function climbTowerFloor(isAuto) {
+    if (!gameData.tower) initTowerData()
+    var floor = gameData.tower.currentFloor
+    var enemy = getTowerEnemy(floor)
+    var playerHp = getPlayerMaxHp()
+    var playerAtk = getPlayerAttack()
+
+    var rounds = Math.max(1, Math.ceil(enemy.maxHp / playerAtk))
+    var damageTaken = (rounds - 1) * enemy.attack
+
+    var logBox = document.getElementById("towerLogBox")
+    var defeatBanner = document.getElementById("towerDefeatBanner")
+
+    if (damageTaken >= playerHp) {
+        // Player defeated
+        if (gameData.tower.autoClimb) {
+            toggleAutoClimb(false)
+        }
+        var prevFloor = gameData.tower.currentFloor
+        gameData.tower.currentFloor = Math.max(1, gameData.tower.currentFloor - 5)
+        
+        if (defeatBanner) {
+            defeatBanner.style.display = "block"
+            var dfElem = document.getElementById("towerDefeatFloor")
+            if (dfElem) dfElem.textContent = prevFloor
+        }
+
+        if (logBox) {
+            logBox.innerHTML = "<span style='color: #f87171; font-weight: 700;'>❌ DEFEATED on Floor " + prevFloor + "!</span> " +
+                enemy.name + " dealt " + damageTaken.toLocaleString() + " damage (Your HP: " + playerHp.toLocaleString() + "). " +
+                "Knocked back 5 floors to Floor " + gameData.tower.currentFloor + ". Go train your skills and return!"
+        }
+        updateTowerUI()
+        return false
+    } else {
+        // Victory
+        if (defeatBanner) defeatBanner.style.display = "none"
+        var survivingHp = playerHp - damageTaken
+
+        var goldMult = 1 + (gameData.tower.upgrades.goldBonus || 0) * 0.25
+        var goldReward = Math.floor(15 * Math.pow(1.16, floor) * (enemy.isBoss ? 5 : 1) * goldMult)
+        gameData.coins += goldReward
+
+        var xpMult = 1 + (gameData.tower.upgrades.xpBonus || 0) * 0.15
+        var xpReward = Math.floor(25 * Math.pow(1.14, floor) * (enemy.isBoss ? 4 : 1) * xpMult)
+        if (gameData.currentJob && typeof gameData.currentJob.increaseXp === "function") {
+            gameData.currentJob.increaseXp(xpReward)
+        }
+        if (gameData.currentSkill && typeof gameData.currentSkill.increaseXp === "function") {
+            gameData.currentSkill.increaseXp(xpReward)
+        }
+
+        var tokenReward = 0
+        if (enemy.isBoss) {
+            tokenReward = Math.max(1, Math.floor(floor / 10))
+            gameData.tower.tokens += tokenReward
+        }
+
+        gameData.tower.currentFloor += 1
+        if (gameData.tower.currentFloor > gameData.tower.highestFloor) {
+            gameData.tower.highestFloor = gameData.tower.currentFloor
+        }
+
+        if (logBox) {
+            var lootText = "<span style='color: #fde047; font-weight: 700;'>+" + formatCoinsString(goldReward) + "</span>, <span style='color: #60a5fa;'>+" + xpReward.toLocaleString() + " XP</span>"
+            if (tokenReward > 0) {
+                lootText += ", <span style='color: #fef08a; font-weight: 800;'>+" + tokenReward + " 🪙 Tokens</span>"
+            }
+            logBox.innerHTML = "<span style='color: #4ade80; font-weight: 700;'>⚔️ Victory on Floor " + floor + "!</span> " +
+                "Defeated " + enemy.name + " (" + rounds + " round" + (rounds > 1 ? "s" : "") + ", Took " + damageTaken.toLocaleString() + " dmg). " +
+                "Rewards: " + lootText
+        }
+
+        updateTowerUI()
+        return true
+    }
+}
+
+function toggleAutoClimb(forceState) {
+    if (!gameData.tower) initTowerData()
+    if (forceState !== undefined) {
+        gameData.tower.autoClimb = forceState
+    } else {
+        gameData.tower.autoClimb = !gameData.tower.autoClimb
+    }
+    updateTowerUI()
+}
+
+var lastAutoClimbTick = 0
+function autoClimbTick() {
+    if (gameData.tower && gameData.tower.autoClimb && isAlive() && !gameData.paused) {
+        var now = Date.now()
+        if (now - lastAutoClimbTick >= 400) {
+            lastAutoClimbTick = now
+            climbTowerFloor(true)
+        }
+    }
+}
+
+function buyTowerUpgrade(type) {
+    if (!gameData.tower) initTowerData()
+    var costs = {
+        attackBonus: 1 + (gameData.tower.upgrades.attackBonus || 0),
+        hpBonus: 1 + (gameData.tower.upgrades.hpBonus || 0),
+        xpBonus: 2 + (gameData.tower.upgrades.xpBonus || 0) * 2,
+        goldBonus: 2 + (gameData.tower.upgrades.goldBonus || 0) * 2
+    }
+    var cost = costs[type] || 1
+    if (gameData.tower.tokens >= cost) {
+        gameData.tower.tokens -= cost
+        gameData.tower.upgrades[type] = (gameData.tower.upgrades[type] || 0) + 1
+        updateTowerUI()
+    }
+}
+
+function skipFiveTowerFloors() {
+    if (!gameData.tower) initTowerData()
+    var cost = 3
+    if (gameData.tower.tokens >= cost) {
+        gameData.tower.tokens -= cost
+        gameData.tower.currentFloor += 5
+        if (gameData.tower.currentFloor > gameData.tower.highestFloor) {
+            gameData.tower.highestFloor = gameData.tower.currentFloor
+        }
+        var logBox = document.getElementById("towerLogBox")
+        if (logBox) {
+            logBox.innerHTML = "<span style='color: #c084fc; font-weight: 700;'>🌀 Dimensional Rift Activated!</span> Skipped 5 floors forward to Floor " + gameData.tower.currentFloor + "!"
+        }
+        updateTowerUI()
+    }
+}
+
+function retreatTowerFloor(amount) {
+    if (!gameData.tower) initTowerData()
+    gameData.tower.currentFloor = Math.max(1, gameData.tower.currentFloor - (amount || 1))
+    updateTowerUI()
+}
+
+function advanceToHighestFloor() {
+    if (!gameData.tower) initTowerData()
+    gameData.tower.currentFloor = gameData.tower.highestFloor
+    updateTowerUI()
+}
+
+function updateTowerUI() {
+    if (!gameData.tower) initTowerData()
+    var floor = gameData.tower.currentFloor
+    var enemy = getTowerEnemy(floor)
+    var playerHp = getPlayerMaxHp()
+    var playerAtk = getPlayerAttack()
+
+    var cfElem = document.getElementById("towerCurrentFloorDisplay")
+    if (cfElem) cfElem.textContent = "Floor " + floor
+
+    var hfElem = document.getElementById("towerHighestFloorDisplay")
+    if (hfElem) hfElem.textContent = "Floor " + gameData.tower.highestFloor
+
+    var tokElem = document.getElementById("towerTokensDisplay")
+    if (tokElem) tokElem.textContent = gameData.tower.tokens
+
+    var shopTokElem = document.getElementById("towerShopTokensDisplay")
+    if (shopTokElem) shopTokElem.textContent = gameData.tower.tokens
+
+    // Player card
+    var pTitle = document.getElementById("towerPlayerTitle")
+    if (pTitle && gameData.currentJob) pTitle.textContent = gameData.currentJob.name
+    var pHpText = document.getElementById("towerPlayerHpText")
+    if (pHpText) pHpText.textContent = playerHp.toLocaleString() + " / " + playerHp.toLocaleString()
+    var pAtkText = document.getElementById("towerPlayerAttackText")
+    if (pAtkText) pAtkText.textContent = "⚔️ " + playerAtk.toLocaleString()
+
+    // Enemy card
+    var eName = document.getElementById("towerEnemyName")
+    if (eName) eName.textContent = enemy.name
+    var eFloorBadge = document.getElementById("towerEnemyFloorBadge")
+    if (eFloorBadge) eFloorBadge.textContent = "Floor " + floor
+    var eHpText = document.getElementById("towerEnemyHpText")
+    if (eHpText) eHpText.textContent = enemy.maxHp.toLocaleString() + " / " + enemy.maxHp.toLocaleString()
+    var eAtkText = document.getElementById("towerEnemyAttackText")
+    if (eAtkText) eAtkText.textContent = "⚔️ " + enemy.attack.toLocaleString()
+
+    var floorTypeBadge = document.getElementById("towerFloorTypeBadge")
+    var enemyCard = document.getElementById("towerEnemyCard")
+    if (enemy.isBoss) {
+        if (floorTypeBadge) {
+            floorTypeBadge.textContent = "👑 BOSS (10x Loot)"
+            floorTypeBadge.style.background = "#78350f"
+            floorTypeBadge.style.borderColor = "#f59e0b"
+            floorTypeBadge.style.color = "#fef08a"
+        }
+        if (enemyCard) {
+            enemyCard.classList.add("boss")
+        }
+    } else {
+        if (floorTypeBadge) {
+            floorTypeBadge.textContent = "Normal Floor"
+            floorTypeBadge.style.background = "#312e81"
+            floorTypeBadge.style.borderColor = "#4338ca"
+            floorTypeBadge.style.color = "#c7d2fe"
+        }
+        if (enemyCard) {
+            enemyCard.classList.remove("boss")
+        }
+    }
+
+    // Auto climb button
+    var autoBtn = document.getElementById("towerAutoClimbBtn")
+    if (autoBtn) {
+        if (gameData.tower.autoClimb) {
+            autoBtn.textContent = "⚡ Auto-Climb: ON"
+            autoBtn.classList.add("active")
+        } else {
+            autoBtn.textContent = "⚡ Auto-Climb: OFF"
+            autoBtn.classList.remove("active")
+        }
+    }
+
+    // Shop Upgrades
+    var up = gameData.tower.upgrades
+    var atkLvl = up.attackBonus || 0
+    var hpLvl = up.hpBonus || 0
+    var xpLvl = up.xpBonus || 0
+    var goldLvl = up.goldBonus || 0
+
+    var atkCost = 1 + atkLvl
+    var hpCost = 1 + hpLvl
+    var xpCost = 2 + xpLvl * 2
+    var goldCost = 2 + goldLvl * 2
+
+    var setElem = function(id, val) {
+        var el = document.getElementById(id)
+        if (el) el.textContent = val
+    }
+    setElem("towerUpAtkLvl", atkLvl)
+    setElem("towerUpAtkPct", atkLvl * 15)
+    setElem("towerCostAtk", atkCost)
+
+    setElem("towerUpHpLvl", hpLvl)
+    setElem("towerUpHpPct", hpLvl * 20)
+    setElem("towerCostHp", hpCost)
+
+    setElem("towerUpXpLvl", xpLvl)
+    setElem("towerUpXpPct", xpLvl * 15)
+    setElem("towerCostXp", xpCost)
+
+    setElem("towerUpGoldLvl", goldLvl)
+    setElem("towerUpGoldPct", goldLvl * 25)
+    setElem("towerCostGold", goldCost)
+
+    var buyAtkBtn = document.getElementById("towerBuyAtkBtn")
+    if (buyAtkBtn) buyAtkBtn.disabled = gameData.tower.tokens < atkCost
+
+    var buyHpBtn = document.getElementById("towerBuyHpBtn")
+    if (buyHpBtn) buyHpBtn.disabled = gameData.tower.tokens < hpCost
+
+    var buyXpBtn = document.getElementById("towerBuyXpBtn")
+    if (buyXpBtn) buyXpBtn.disabled = gameData.tower.tokens < xpCost
+
+    var buyGoldBtn = document.getElementById("towerBuyGoldBtn")
+    if (buyGoldBtn) buyGoldBtn.disabled = gameData.tower.tokens < goldCost
+
+    var buySkipBtn = document.getElementById("towerBuySkipBtn")
+    if (buySkipBtn) buySkipBtn.disabled = gameData.tower.tokens < 3
+}
+
 function assignMethods() {
     for (key in gameData.taskData) {
         var task = gameData.taskData[key]
@@ -1450,6 +1858,8 @@ function loadGameData() {
     if (gameData.autoJob === undefined) gameData.autoJob = null
     if (gameData.autoSkill === undefined) gameData.autoSkill = null
 
+    initTowerData()
+
     assignMethods()
     setCustomEffects()
     addMultipliers()
@@ -1467,6 +1877,7 @@ function updateUI() {
     updateQuickTaskDisplay("skill")
     hideEntities()
     updateText()  
+    updateTowerUI()
 }
 
 function update() {
@@ -1478,6 +1889,7 @@ function update() {
     doCurrentTask(gameData.currentSkill)
     applyExpenses()
     updateUI()
+    autoClimbTick()
 }
 
 function resetGameData() {
