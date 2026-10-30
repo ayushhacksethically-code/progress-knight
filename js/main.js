@@ -561,10 +561,14 @@ function getEvil() {
 
 function applyMultipliers(value, multipliers) {
     var finalMultiplier = 1
-    multipliers.forEach(function(multiplierFunction) {
-        var multiplier = multiplierFunction()
-        finalMultiplier *= multiplier
-    })
+    if (multipliers) {
+        multipliers.forEach(function(multiplierFunction) {
+            if (typeof multiplierFunction === "function") {
+                var multiplier = multiplierFunction()
+                finalMultiplier *= multiplier
+            }
+        })
+    }
     var finalValue = Math.round(value * finalMultiplier)
     return finalValue
 }
@@ -1431,6 +1435,8 @@ function loadGameData() {
     if (gameData.autoSkill === undefined) gameData.autoSkill = null
 
     assignMethods()
+    setCustomEffects()
+    addMultipliers()
 }
 
 function updateUI() {
